@@ -18,7 +18,7 @@ Or install it yourself as:
 
 ## Usage
 
-    $ bundle exec ruby bin/pacproxy -P proxy.pac -p 3128
+    $ bundle exec pacproxy -P proxy.pac -p 3128
 
 
 ## Contributing
