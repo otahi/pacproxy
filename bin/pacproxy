@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require 'pacproxy'
+require 'optparse'
+
+port = 3128
+proxy_pac = nil
+
+OptionParser.new do |o|
+  o.on('-p PORT', Integer,"specify listening port. default: #{port}") { |p| port = p }
+  o.on('-P PROXYPAC', String, 'specify proxy.pac location') { |pac| proxy_pac = pac }
+  o.on('-h', 'show this help') { puts o; exit }
+  o.parse!
+end
+
+s = Pacproxy::Pacproxy.new({Port: port,Proxypac: proxy_pac})
+
+Signal.trap('INT') do
+  s.shutdown
+end
+
+s.start
