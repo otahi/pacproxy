@@ -26,7 +26,8 @@ module Pacproxy
       when /^DIRECT/
         uri = nil
       when /PROXY/
-        proxy = /PROXY (.*);/.match(proxy_line)[1]
+        primary_proxy = proxy_line.split(';')[0]
+        proxy = /PROXY (.*)/.match(primary_proxy)[1]
         uri = URI.parse("http://#{proxy}")
       end
     end
