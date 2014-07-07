@@ -5,8 +5,10 @@ require 'optparse'
 
 port = 3128
 proxy_pac = nil
+daemonize = false
 
 OptionParser.new do |o|
+  o.on('-d', 'daemonize') { daemonize = true }
   o.on('-p PORT', Integer,"specify listening port. default: #{port}") { |p| port = p }
   o.on('-P PROXYPAC', String, 'specify proxy.pac location') { |pac| proxy_pac = pac }
   o.on('-h', 'show this help') { puts o; exit }
@@ -19,4 +21,8 @@ Signal.trap('INT') do
   s.shutdown
 end
 
-s.start
+if daemonize
+  WEBrick::Daemon.start { s.start }
+else
+  s.start
+end
