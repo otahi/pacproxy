@@ -2,6 +2,8 @@
 
 Pacproxy provides http/https proxy routed with proxy.pac.
 
+**:warning:Now Pacproxy is very early stage, so it will have big change.**
+
 ## Installation
 
 Add this line to your application's Gemfile:
