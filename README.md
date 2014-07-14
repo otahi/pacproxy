@@ -6,17 +6,14 @@ Pacproxy provides http/https proxy routed with proxy.pac.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add this line to your application's Gemfile, for example:
 
     gem 'pacproxy'
+    gem 'therubyracer'
 
 And then execute:
 
     $ bundle
-
-Or install it yourself as:
-
-    $ gem install pacproxy
 
 ## Requirements
 
@@ -32,6 +29,9 @@ After installing the `pacproxy` gem you must install a JavaScript runtime. Compa
 
     $ bundle exec pacproxy -P proxy.pac -p 3128
 
+or
+
+    $ bundle exec pacproxy -P http://sample.org/proxy.pac -p 3128
 
 ## Contributing
 
