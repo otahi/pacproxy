@@ -2,7 +2,7 @@
 
 Pacproxy provides http/https proxy routed with proxy.pac.
 
-**:warning:Now Pacproxy is very early stage, so it will have big change.**
+**:warning:Now Pacproxy is very early stage, so it might have big change.**
 
 ## Installation
 
@@ -17,6 +17,16 @@ And then execute:
 Or install it yourself as:
 
     $ gem install pacproxy
+
+## Requirements
+
+After installing the `pacproxy` gem you must install a JavaScript runtime. Compatible runtimes include
+(see [pac](https://github.com/samuelkadolph/ruby-pac/blob/master/README.md):
+
+* [therubyracer](https://rubygems.org/gems/therubyracer) Google V8 embedded within Ruby
+* [therubyrhino](https://rubygems.org/gems/therubyrhino/) Mozilla Rhino embedded within JRuby
+* [johnson](https://rubygems.org/gems/johnson/) Mozilla SpiderMonkey embedded within Ruby 1.8
+* [mustang](https://rubygems.org/gems/mustang/) Mustang V8 embedded within Ruby
 
 ## Usage
 
