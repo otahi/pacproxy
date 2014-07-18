@@ -24,5 +24,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~> 3.0.0'
   spec.add_development_dependency 'rake', '~> 10.3.2'
   spec.add_development_dependency 'httpclient', '~> 2.4.0'
-  spec.add_development_dependency 'byebug'
+  spec.add_development_dependency 'therubyracer', '~> 0.12.1'
 end
