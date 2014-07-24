@@ -2,10 +2,10 @@ require 'spec_helper'
 require 'httpclient'
 
 def wait_server_status(servers, status)
-  return unless (servers or status)
+  return unless (servers || status)
   servers = [servers] unless servers.respond_to?(:all?)
   return unless servers.all? { |s| s.respond_to?(:status) }
-  sleep(0.5) until servers.all? { |s| s.status; s.status == status }
+  sleep(0.01) until servers.all? {|s| s.status == status }
 end
 
 describe Pacproxy do
@@ -22,25 +22,6 @@ describe Pacproxy do
 
     after(:each) do
       $stdout, $stderr = STDOUT, STDERR
-    end
-
-    it 'have @pac variable' do
-      s = Pacproxy::Pacproxy.new(Port: 3128)
-      expect(s.instance_variable_defined?(:@pac)).to eq(true)
-      s.shutdown
-    end
-
-    it 'have @pac with nil if not given' do
-      s = Pacproxy::Pacproxy.new(Port: 3128)
-      expect(s.instance_variable_get(:@pac)).to be_nil
-      s.shutdown
-    end
-
-    it 'set @pac by :Proxypac' do
-      pacfile = 'proxy.pac'
-      s = Pacproxy::Pacproxy.new(Port: 3128, Proxypac: pacfile)
-      expect(s.instance_variable_get(:@pac)).to eq(pacfile)
-      s.shutdown
     end
   end
 
