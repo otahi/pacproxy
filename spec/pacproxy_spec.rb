@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'httpclient'
 
 def wait_server_status(servers, status)
-  return unless (servers or status)
+  return unless (servers || status)
   servers = [servers] unless servers.respond_to?(:all?)
   return unless servers.all? { |s| s.respond_to?(:status) }
   sleep(0.01) until servers.all? {|s| s.status == status }

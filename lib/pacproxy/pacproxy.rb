@@ -6,7 +6,7 @@ module Pacproxy
   class Pacproxy < WEBrick::HTTPProxyServer
     def initialize(config={}, default=WEBrick::Config::HTTP)
       super(config, default)
-      @pac = Pac_file.new(config[:Proxypac])
+      @pac = PacFile.new(config[:Proxypac])
     end
 
     def proxy_uri(req, res)
