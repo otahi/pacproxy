@@ -2,6 +2,11 @@
 
 Pacproxy provides http/https proxy routed with proxy.pac.
 
+[![Build Status](https://travis-ci.org/otahi/pacproxy.png?branch=master)](https://travis-ci.org/otahi/pacproxy)
+[![Coverage Status](https://coveralls.io/repos/otahi/pacproxy/badge.png?branch=master)](https://coveralls.io/r/otahi/pacproxy?branch=master)
+[![Code Climate](https://codeclimate.com/github/otahi/pacproxy.png)](https://codeclimate.com/github/otahi/pacproxy)
+[![Gem Version](https://badge.fury.io/rb/pacproxy.png)](http://badge.fury.io/rb/pacproxy)
+
 **:warning:Now Pacproxy is very early stage, so it might have big change.**
 
 ## Installation
