@@ -15,16 +15,6 @@ describe Pacproxy do
     end
   end
 
-  describe 'Pacproxy#initialize' do
-    before(:each) do
-      $stdout, $stderr = StringIO.new, StringIO.new
-    end
-
-    after(:each) do
-      $stdout, $stderr = STDOUT, STDERR
-    end
-  end
-
   describe 'Pacproxy#proxy_uri' do
     before(:each) do
       $stdout, $stderr = StringIO.new, StringIO.new
