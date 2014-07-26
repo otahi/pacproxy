@@ -3,6 +3,7 @@ require 'pac'
 require 'uri'
 
 module Pacproxy
+  # Pacproxy::PacFile represent proxy.pac file
   class PacFile
     def initialize(file_location, update_interval = 1800)
       @pac = nil
@@ -33,6 +34,7 @@ module Pacproxy
       @pac = tmp if @pac.nil? || @pac.source != tmp.source
     rescue
       # log
+      puts "#{file_location} update error"
     end
   end
 end
