@@ -5,7 +5,10 @@ require 'uri'
 module Pacproxy
   # Pacproxy::Pacproxy represent http/https proxy server
   class Pacproxy < WEBrick::HTTPProxyServer
+    include Loggable
+
     def initialize(config = {}, default = WEBrick::Config::HTTP)
+      config[:Logger] = general_logger
       super(config, default)
       @pac = PacFile.new(config[:Proxypac])
     end
