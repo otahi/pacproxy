@@ -21,6 +21,8 @@ module Pacproxy
       lookup_proxy_uri(proxy_line)
     end
 
+    private
+
     def request_uri(request)
       if 'CONNECT' == request.request_method
         "https://#{request.header['host'][0]}/"
@@ -38,6 +40,11 @@ module Pacproxy
         proxy = /PROXY (.*)/.match(primary_proxy)[1]
         URI.parse("http://#{proxy}")
       end
+    end
+
+    def perform_proxy_request(req, res)
+      super
+      accesslog(req, res)
     end
   end
 end

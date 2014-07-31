@@ -9,7 +9,7 @@ module Pacproxy
     end
 
     def access_logger
-      Access_Logger.instance.logger
+      AccessLogger.instance
     end
 
     def debug(message)
@@ -52,8 +52,8 @@ module Pacproxy
       general_logger.fatal?
     end
 
-    def access_log(config, req, res)
-      p config, req, res
+    def accesslog(req, res)
+      access_logger.accesslog(req, res)
     end
   end
 end
