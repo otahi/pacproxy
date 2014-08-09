@@ -1,5 +1,6 @@
 require 'singleton'
 require 'logger'
+require 'webrick/accesslog'
 
 module Pacproxy
   # Provide log Function
@@ -10,22 +11,22 @@ module Pacproxy
 
     def initialize
       @logger = Logger.new('proxy_access.log', 7, 10 * 1024 * 1024)
-      @format = ''
+      @format = WEBrick::AccessLog::COMMON_LOG_FORMAT
     end
 
     def accesslog(req, res)
-      # TODO: impl
       params = setup_params(req, res)
-      logger << format(@format, params)
+      logger << WEBrick::AccessLog.format(@format, params)
+      logger << "\n"
     end
 
     private
 
+    # This format specification is a subset of mod_log_config of Apache:
+    # See: https://github.com/ruby/ruby/blob/trunk/lib/webrick/accesslog.rb
+
     def setup_params(req, res)
-      params = Hash.new('')
-      params[:a] = req
-      params[:b] = res
-      params
+      WEBrick::AccessLog.setup_params({ ServerName: '-' }, req, res)
     end
   end
 end
