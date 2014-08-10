@@ -5,7 +5,10 @@ require 'uri'
 module Pacproxy
   # Pacproxy::Pacproxy represent http/https proxy server
   class Pacproxy < WEBrick::HTTPProxyServer
+    include Loggable
+
     def initialize(config = {}, default = WEBrick::Config::HTTP)
+      config[:Logger] = general_logger
       super(config, default)
       @pac = PacFile.new(config[:Proxypac])
     end
@@ -17,6 +20,8 @@ module Pacproxy
       proxy_line = @pac.find(request_uri(req))
       lookup_proxy_uri(proxy_line)
     end
+
+    private
 
     def request_uri(request)
       if 'CONNECT' == request.request_method
@@ -36,5 +41,24 @@ module Pacproxy
         URI.parse("http://#{proxy}")
       end
     end
+
+    def perform_proxy_request(req, res)
+      super
+      accesslog(req, res)
+    end
+
+    # allow PUT method on proxy server
+    # method names for webrick is indicated by rubocop
+    # rubocop:disable all
+    def do_PUT(req, res)
+      perform_proxy_request(req, res) do |http, path, header|
+        http.put(path, req.body || '', header)
+      end
+    end
+
+    def do_OPTIONS(_req, res)
+      res['allow'] = 'GET,HEAD,POST,OPTIONS,CONNECT,PUT'
+    end
+    # rubocop:enable all
   end
 end
