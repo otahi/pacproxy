@@ -25,7 +25,7 @@ module Pacproxy
 
     def request_uri(request)
       if 'CONNECT' == request.request_method
-        "https://#{request.header['host'][0]}/"
+        "https://#{request.unparsed_uri}/"
       else
         request.unparsed_uri
       end
