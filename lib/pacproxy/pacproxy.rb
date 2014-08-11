@@ -55,10 +55,6 @@ module Pacproxy
         http.put(path, req.body || '', header)
       end
     end
-
-    def do_OPTIONS(_req, res)
-      res['allow'] = 'GET,HEAD,POST,OPTIONS,CONNECT,PUT'
-    end
     # rubocop:enable all
   end
 end
