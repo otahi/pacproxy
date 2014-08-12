@@ -1,0 +1,56 @@
+# pacproxy conifguration
+
+# daemonize: [boolean]
+# eg. daemonize: true
+damemonize: true
+
+# port: [integer]
+# eg. port: 3128
+port: 3128
+
+# pac_file related items
+pac_file:
+# pac_file > location: [string]
+# eg. location: proxy.pac
+# eg. location: http://example.com/proxy.pac
+  location: proxy.pac
+# pac_file > update_interval(seconds): [integer]
+# eg. update_interval: 1800
+  update_interval: 1800
+
+# general log related items
+general_log:
+# general_log > location: [string]
+# eg. location: pacproxy.log
+  location: pacproxy.log
+# general_log > log_level: [string]
+# DEBUG/INFO/WARN/ERROR/FATAL
+# see: http://ruby-doc.org/stdlib-2.1.2/libdoc/logger/rdoc/Logger.html
+# eg. log_level: ERROR
+  log_level: ERROR
+# general_log > log_rotate related items
+  log_rotate:
+# general_log > log_rotate > shift_age: [integer/string]
+# see: http://ruby-doc.org/stdlib-2.1.2/libdoc/logger/rdoc/Logger.html
+    shift_age: 7
+# general_log > log_rotate > shift_size: [integer]
+# see: http://ruby-doc.org/stdlib-2.1.2/libdoc/logger/rdoc/Logger.html
+    shift_size: 10485760 #10 * 1024 * 1024
+
+# access log related items
+access_log:
+# access_log > location: [string]
+# eg. location: proxy_access.log
+  location: proxy_access.log
+# access_log > format: [string]
+# eg. format: "%h %l %u %t \"%r\" %s %b"
+# see: http://httpd.apache.org/docs/current/en/mod/mod_log_config.html
+  format: "%h %l %u %t \"%r\" %s %b"
+# access_log > log_rotate related items
+  log_rotate: 
+# access_log > log_rotate > shift_age: [integer/string]
+# see: http://ruby-doc.org/stdlib-2.1.2/libdoc/logger/rdoc/Logger.html
+    shift_age: 7 
+# access_log > log_rotate > shift_size: [integer]
+# see: http://ruby-doc.org/stdlib-2.1.2/libdoc/logger/rdoc/Logger.html
+    shift_size: 10485760 #10 * 1024 * 1024

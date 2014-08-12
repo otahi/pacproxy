@@ -11,11 +11,31 @@ Pacproxy provides http/https proxy routed by proxy.pac.
 
 ## Usage
 
+    $ bundle exec pacproxy
+
+or
+
+    $ bundle exec pacproxy -c pacproxy.yml
+
+or
+
     $ bundle exec pacproxy -P proxy.pac -p 3128
 
 or
 
     $ bundle exec pacproxy -P http://sample.org/proxy.pac -p 3128
+
+## Configuration
+
+You can configure pacproxy by a file which you specified with `-c` option.
+The default configuration file is `pacproxy.yml` in the current working directory.
+
+Configurable items:
+- daemonize
+- port
+- pac file
+- general log
+- access log 
 
 ## Installation
 
