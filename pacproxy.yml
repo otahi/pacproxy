@@ -2,7 +2,7 @@
 
 # daemonize: [boolean]
 # eg. daemonize: true
-damemonize: true
+daemonize: true
 
 # port: [integer]
 # eg. port: 3128
