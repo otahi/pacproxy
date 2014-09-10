@@ -10,12 +10,21 @@ module Pacproxy
     attr_accessor :logger
 
     def initialize
-      @logger = Logger.new('proxy_access.log', 7, 10 * 1024 * 1024)
+      c = Config.instance.config['access_log']
       @format = WEBrick::AccessLog::COMMON_LOG_FORMAT
+      return @logger = nil unless c
+
+      @format = c['format'] if c['format']
+
+      location = c['location'] ? c['location'] : STDOUT
+      shift_age = c['shift_age'] ? c['shift_age'] : 0
+      shift_size = c['shift_size'] ? c['shift_size'] : 1_048_576
+      @logger = Logger.new(location, shift_age, shift_size)
     end
 
     def accesslog(req, res)
       params = setup_params(req, res)
+      return unless logger
       logger << WEBrick::AccessLog.format(@format, params)
       logger << "\n"
     end

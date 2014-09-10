@@ -5,6 +5,7 @@ require 'uri'
 module Pacproxy
   # Pacproxy::PacFile represent proxy.pac file
   class PacFile
+    include Loggable
     def initialize(file_location, update_interval = 1800)
       @pac = nil
       begin_update(file_location, update_interval)
@@ -32,9 +33,8 @@ module Pacproxy
     def update(file_location)
       tmp = PAC.load(file_location)
       @pac = tmp if @pac.nil? || @pac.source != tmp.source
-    rescue
-      # log
-      puts "#{file_location} update error"
+    rescue => e
+      error("#{file_location} update error: #{e}")
     end
   end
 end
