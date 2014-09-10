@@ -4,32 +4,41 @@ require 'pacproxy'
 require 'optparse'
 require 'logger'
 
-port = 3128
-proxy_pac = nil
-daemonize = false
-log_file = 'pacproxy.log'
+config_file = nil
+config = Pacproxy::Config.instance.config
 
 OptionParser.new do |o|
-  o.on('-d', 'daemonize') { daemonize = true }
-  o.on('-l LOGFILE', String, "specify log file. default: #{log_file}") { |l| log_file = l }
-  o.on('-p PORT', Integer,"specify listening port. default: #{port}") { |p| port = p }
-  o.on('-P PROXYPAC', String, 'specify proxy.pac location') { |pac| proxy_pac = pac }
-  o.on('-h', 'show this help') { puts o; exit }
+  o.on('-c CONFIGFILE', String,
+       "specify config file. default: #{config_file}") do |f|
+    config_file = f
+    config = Pacproxy::Config.instance.update(config_file).config
+  end
+  o.on('-d', 'daemonize') { config.merge!('daemonize' => true) }
+  o.on('-l LOGFILE', String,
+       "specify log file. default: #{config['log_file']}") do |l|
+    config.merge!('log_file' => l)
+  end
+  o.on('-p PORT', Integer,
+       "specify listening port. default: #{config['port']}") do |p|
+    config.merge!('port' => p)
+  end
+  o.on('-P PROXYPAC', String, 'specify proxy.pac location') do |pac|
+    config.merge!('pac_file' => { 'location' => pac })
+  end
+  o.on('-h', 'show this help') do
+    puts o
+    exit
+  end
   o.parse!
 end
 
-logger = Logger.new(log_file, 'weekly')
-logger.level = Logger::DEBUG
-
-s = Pacproxy::Pacproxy.new(Port: port,
-                           Proxypac: proxy_pac,
-                           Logger: logger)
+s = Pacproxy::Pacproxy.new(config)
 
 Signal.trap('INT') do
   s.shutdown
 end
 
-if daemonize
+if config['daemonize']
   WEBrick::Daemon.start { s.start }
 else
   s.start

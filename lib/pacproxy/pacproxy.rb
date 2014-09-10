@@ -8,9 +8,11 @@ module Pacproxy
     include Loggable
 
     def initialize(config = {}, default = WEBrick::Config::HTTP)
-      config[:Logger] = general_logger
-      super(config, default)
-      @pac = PacFile.new(config[:Proxypac])
+      super({ Port: config['port'], Logger: general_logger }, default)
+      return unless config['pac_file'] && config['pac_file']['location']
+
+      @pac = PacFile.new(config['pac_file']['location'],
+                         config['pac_file']['update_interval'])
     end
 
     def proxy_uri(req, res)
