@@ -8,9 +8,11 @@ module Pacproxy
     include Loggable
 
     def initialize(config = {}, default = WEBrick::Config::HTTP)
-      config[:Logger] = general_logger
-      super(config, default)
-      @pac = PacFile.new(config[:Proxypac])
+      super({ Port: config['port'], Logger: general_logger }, default)
+      return unless config['pac_file'] && config['pac_file']['location']
+
+      @pac = PacFile.new(config['pac_file']['location'],
+                         config['pac_file']['update_interval'])
     end
 
     def proxy_uri(req, res)
@@ -18,7 +20,27 @@ module Pacproxy
       return unless @pac
 
       proxy_line = @pac.find(request_uri(req))
-      lookup_proxy_uri(proxy_line)
+      proxy = lookup_proxy_uri(proxy_line)
+      create_proxy_uri(proxy, req.header)
+    end
+
+    def create_proxy_uri(proxy, header)
+      return nil unless proxy
+      return URI.parse("http://#{proxy}") unless
+        header.key?('proxy-authorization')
+
+      auth = header['proxy-authorization'][0]
+      pattern = /basic (\S+)/i
+      basic_auth = pattern.match(auth)[1]
+      header.delete('proxy-authorization')
+
+      return URI.parse("http://#{proxy}") unless basic_auth
+
+      URI.parse("http://#{basic_auth.unpack('m').first}@#{proxy}")
+    end
+
+    def proxy_auth(req, res)
+      @config[:ProxyAuthProc].call(req, res) if @config[:ProxyAuthProc]
     end
 
     private
@@ -37,8 +59,7 @@ module Pacproxy
         nil
       when /PROXY/
         primary_proxy = proxy_line.split(';')[0]
-        proxy = /PROXY (.*)/.match(primary_proxy)[1]
-        URI.parse("http://#{proxy}")
+        /PROXY (.*)/.match(primary_proxy)[1]
       end
     end
 

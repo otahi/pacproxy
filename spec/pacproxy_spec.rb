@@ -52,9 +52,10 @@ describe Pacproxy do
     end
 
     it 'transfer request to server directly' do
-      @pacproxy_server =
-        Pacproxy::Pacproxy.new(Port: 13_128,
-                               Proxypac: 'spec/all_direct.pac')
+      c = Pacproxy::Config.instance.config
+      c['port'] = 13_128
+      c['pac_file']['location'] = 'spec/all_direct.pac'
+      @pacproxy_server = Pacproxy::Pacproxy.new(c)
       Thread.new { @pacproxy_server.start }
       wait_server_status(@pacproxy_server, :Running)
 
@@ -67,9 +68,10 @@ describe Pacproxy do
     end
 
     it 'transfer request to server directly via HTTPS' do
-      @pacproxy_server =
-        Pacproxy::Pacproxy.new(Port: 13_128,
-                               Proxypac: 'spec/all_direct.pac')
+      c = Pacproxy::Config.instance.config
+      c['port'] = 13_128
+      c['pac_file']['location'] = 'spec/all_direct.pac'
+      @pacproxy_server = Pacproxy::Pacproxy.new(c)
       Thread.new { @pacproxy_server.start }
       wait_server_status(@pacproxy_server, :Running)
 
@@ -83,9 +85,10 @@ describe Pacproxy do
     end
 
     it 'transfer request to server directly with PUT method' do
-      @pacproxy_server =
-        Pacproxy::Pacproxy.new(Port: 13_128,
-                               Proxypac: 'spec/all_direct.pac')
+      c = Pacproxy::Config.instance.config
+      c['port'] = 13_128
+      c['pac_file']['location'] = 'spec/all_direct.pac'
+      @pacproxy_server = Pacproxy::Pacproxy.new(c)
       Thread.new { @pacproxy_server.start }
       wait_server_status(@pacproxy_server, :Running)
 
@@ -98,9 +101,10 @@ describe Pacproxy do
     end
 
     it 'transfer request to server via parent proxy' do
-      @pacproxy_server =
-        Pacproxy::Pacproxy.new(Port: 13_128,
-                               Proxypac: 'spec/all_proxy.pac')
+      c = Pacproxy::Config.instance.config
+      c['port'] = 13_128
+      c['pac_file']['location'] = 'spec/all_direct.pac'
+      @pacproxy_server = Pacproxy::Pacproxy.new(c)
       Thread.new { @pacproxy_server.start }
       wait_server_status(@pacproxy_server, :Running)
 
@@ -113,9 +117,10 @@ describe Pacproxy do
     end
 
     it 'transfer request to server via parent proxy partially' do
-      @pacproxy_server =
-        Pacproxy::Pacproxy.new(Port: 13_128,
-                               Proxypac: 'spec/partial_proxy.pac')
+      c = Pacproxy::Config.instance.config
+      c['port'] = 13_128
+      c['pac_file']['location'] = 'spec/partial_proxy.pac'
+      @pacproxy_server = Pacproxy::Pacproxy.new(c)
       Thread.new { @pacproxy_server.start }
       wait_server_status(@pacproxy_server, :Running)
 
@@ -124,6 +129,27 @@ describe Pacproxy do
       expect(res.status).to eq(200)
 
       res = c.get('http://127.0.0.1:13080/noproxy/')
+      expect(res.status).to eq(200)
+    end
+
+    it 'transfer request with auth to server via parent proxy' do
+      c = Pacproxy::Config.instance.config
+      c['port'] = 13_128
+      c['pac_file']['location'] = 'spec/all_proxy.pac'
+      @pacproxy_server = Pacproxy::Pacproxy.new(c)
+
+      Thread.new { @pacproxy_server.start }
+      wait_server_status(@pacproxy_server, :Running)
+
+      c = HTTPClient.new('http://127.0.0.1:13128')
+      header = { header: { 'proxy-authorization' =>
+          %Q(Basic #{['user01:pass01'].pack('m').delete("\n")})
+        }
+      }
+      p header: header
+      res = c.get('http://127.0.0.1:13080/', header)
+      expect(res.status).to eq(200)
+      res = c.get('http://127.0.0.1:13080/noproxy/', header)
       expect(res.status).to eq(200)
     end
   end

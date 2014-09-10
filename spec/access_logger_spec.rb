@@ -3,6 +3,8 @@ require 'spec_helper'
 describe Pacproxy::AccessLogger do
   describe 'accesslog' do
     it 'write Apache common log format' do
+      Pacproxy::Config.instance.update('pacproxy.yml')
+
       log = Pacproxy::AccessLogger.instance
       log.logger = ''
       now = Time.now

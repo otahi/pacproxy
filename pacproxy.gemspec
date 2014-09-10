@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["ota_h@nifty.com"]
   spec.summary       = %q{A proxy server works with proxy.pac}
   spec.description   = %q{A proxy server works with proxy.pac}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/otahi/pacproxy"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
