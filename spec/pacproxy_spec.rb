@@ -152,7 +152,7 @@ describe Pacproxy do
       expect(res.status).to eq(200)
     end
 
-    it 'respond 407 when upstrem proxy respond 407' do
+    it 'respond 407 when upstrem proxy respond 407 on http' do
       proxy_proc = proc do |_req, resp|
         resp.header.merge!('Proxy-Authenticate' => "Basic realm=\"proxy\"")
         fail WEBrick::HTTPStatus::ProxyAuthenticationRequired
@@ -173,6 +173,33 @@ describe Pacproxy do
       res = c.get('http://127.0.0.1:13080/')
       expect(res.status).to eq(407)
       expect(res.header['Proxy-Authenticate']).to eq(["Basic realm=\"proxy\""])
+    end
+
+    it 'respond 407 when upstrem proxy respond 407 on https' do
+      proxy_proc = proc do |_req, resp|
+        resp.header.merge!('Proxy-Authenticate' => "Basic realm=\"proxy\"")
+        fail WEBrick::HTTPStatus::ProxyAuthenticationRequired
+      end
+
+      pc = @proxy_server.instance_variable_get('@config')
+      @proxy_server.instance_variable_set('@config',
+                                          pc.merge(ProxyAuthProc: proxy_proc))
+      c = Pacproxy::Config.instance.config
+      c['port'] = 13_128
+      c['pac_file']['location'] = 'spec/all_proxy.pac'
+      @pacproxy_server = Pacproxy::Pacproxy.new(c)
+
+      Thread.new { @pacproxy_server.start }
+      wait_server_status(@pacproxy_server, :Running)
+
+      c = HTTPClient.new('http://127.0.0.1:13128')
+      begin
+        c.get('https://127.0.0.1:13080/')
+      rescue => e
+        expect(e.res.status).to eq(407)
+        expect(e.res.header['Proxy-Authenticate'])
+          .to eq(["Basic realm=\"proxy\""])
+      end
     end
   end
 end
