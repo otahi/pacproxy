@@ -8,7 +8,7 @@ module Pacproxy
     DEFAULT_CONFIG = {
       'daemonize' => false,
       'port' => 3128,
-      'proxy_pac' => { 'location' => nil },
+      'pac_file' => { 'location' => nil },
       'general_log' => { 'location' => 'pacproxy.log' }
     }
 
