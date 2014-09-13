@@ -63,6 +63,24 @@ module Pacproxy
       end
     end
 
+    # Change from WEBrick::HTTPProxyServer
+    # proxy-authenticate can be transferred from a upstream proxy server
+    # to a client
+    HOP_BY_HOP = %w( connection keep-alive upgrade
+                     proxy-authorization te trailers transfer-encoding )
+    SHOULD_NOT_TRANSFER = %w( set-cookie proxy-connection )
+    def choose_header(src, dst)
+      connections = split_field(src['connection'])
+      src.each do |key, value|
+        key = key.downcase
+        next if HOP_BY_HOP.member?(key)        || # RFC2616: 13.5.1
+          connections.member?(key)             || # RFC2616: 14.10
+          SHOULD_NOT_TRANSFER.member?(key)        # pragmatics
+
+        dst[key] = value
+      end
+    end
+
     def perform_proxy_request(req, res)
       super
       accesslog(req, res)
