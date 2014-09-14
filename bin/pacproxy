@@ -39,6 +39,11 @@ Signal.trap('INT') do
 end
 
 if config['daemonize']
+  # To use executed directory as the current directory
+  # The current directory is changed when daemonized to '/'
+  Pacproxy::GeneralLogger.instance
+  Pacproxy::AccessLogger.instance
+
   WEBrick::Daemon.start { s.start }
 else
   s.start

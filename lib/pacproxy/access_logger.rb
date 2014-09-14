@@ -24,9 +24,9 @@ module Pacproxy
 
     def accesslog(req, res)
       params = setup_params(req, res)
-      return unless logger
-      logger << WEBrick::AccessLog.format(@format, params)
-      logger << "\n"
+      return unless @logger
+      @logger << WEBrick::AccessLog.format(@format, params)
+      @logger << "\n"
     end
 
     private
