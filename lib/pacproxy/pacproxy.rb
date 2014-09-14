@@ -123,7 +123,7 @@ module Pacproxy
         @logger.debug("CONNECT #{host}:#{port}: closed")
       end
 
-      raise HTTPStatus::EOFError
+      raise WEBrick::HTTPStatus::EOFError
     end
     # rubocop:enable all
 
