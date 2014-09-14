@@ -7,8 +7,6 @@ Pacproxy provides http/https proxy routed by proxy.pac.
 [![Code Climate](https://codeclimate.com/github/otahi/pacproxy.png)](https://codeclimate.com/github/otahi/pacproxy)
 [![Gem Version](https://badge.fury.io/rb/pacproxy.png)](http://badge.fury.io/rb/pacproxy)
 
-**:warning: Now Pacproxy is early stage, so it might have big change.**
-
 ## Usage
 
     $ bundle exec pacproxy
@@ -28,7 +26,8 @@ or
 ## Configuration
 
 You can configure pacproxy by a file which you specified with `-c` option.
-The default configuration file is `pacproxy.yml` in the current working directory.
+The default configuration file is `pacproxy.yml`([sample](./pacproxy.yml))
+in the current working directory.
 
 Configurable items:
 - daemonize

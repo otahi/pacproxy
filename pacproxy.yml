@@ -11,7 +11,8 @@ port: 3128
 # pac_file related items
 pac_file:
 # pac_file > location: [string]
-# eg. location: proxy.pac
+# absolute path is preferred
+# eg. location: /opt/pacproxy/proxy.pac
 # eg. location: http://example.com/proxy.pac
   location: proxy.pac
 # pac_file > update_interval(seconds): [integer]
@@ -21,7 +22,8 @@ pac_file:
 # general log related items
 general_log:
 # general_log > location: [string]
-# eg. location: pacproxy.log
+# absolute path is preferred
+# eg. location: /var/log/pacproxy.log
   location: pacproxy.log
 # general_log > log_level: [string]
 # DEBUG/INFO/WARN/ERROR/FATAL
@@ -40,7 +42,8 @@ general_log:
 # access log related items
 access_log:
 # access_log > location: [string]
-# eg. location: proxy_access.log
+# absolute path is preferred
+# eg. location: /var/log/proxy_access.log
   location: proxy_access.log
 # access_log > format: [string]
 # eg. format: "%h %l %u %t \"%r\" %s %b"
