@@ -1,11 +1,18 @@
 require 'pacproxy'
 require 'pac'
 require 'uri'
+require 'thread'
 
 module Pacproxy
   # Pacproxy::PacFile represent proxy.pac file
   class PacFile
     include Loggable
+
+    @js_lock = Mutex.new
+    class << self
+      attr_reader :js_lock
+    end
+
     def initialize(file_location, update_interval = 1800)
       @pac = nil
       begin_update(file_location, update_interval)
@@ -13,7 +20,9 @@ module Pacproxy
 
     def find(uri)
       return 'DIRECT' unless @pac
-      @pac.find(uri)
+      PacFile.js_lock.synchronize do
+        @pac.find(uri)
+      end
     end
 
     private
