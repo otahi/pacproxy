@@ -1,27 +1,23 @@
-# Pacproxy
+# Pacproxy [![Build Status](https://travis-ci.org/otahi/pacproxy.png?branch=master)](https://travis-ci.org/otahi/pacproxy)[![Coverage Status](https://coveralls.io/repos/otahi/pacproxy/badge.png?branch=master)](https://coveralls.io/r/otahi/pacproxy?branch=master)[![Code Climate](https://codeclimate.com/github/otahi/pacproxy.png)](https://codeclimate.com/github/otahi/pacproxy)[![Gem Version](https://badge.fury.io/rb/pacproxy.png)](http://badge.fury.io/rb/pacproxy)
 
-Pacproxy provides http/https proxy routed by proxy.pac.
-
-[![Build Status](https://travis-ci.org/otahi/pacproxy.png?branch=master)](https://travis-ci.org/otahi/pacproxy)
-[![Coverage Status](https://coveralls.io/repos/otahi/pacproxy/badge.png?branch=master)](https://coveralls.io/r/otahi/pacproxy?branch=master)
-[![Code Climate](https://codeclimate.com/github/otahi/pacproxy.png)](https://codeclimate.com/github/otahi/pacproxy)
-[![Gem Version](https://badge.fury.io/rb/pacproxy.png)](http://badge.fury.io/rb/pacproxy)
+Pacproxy provides an http/https proxy server which does proxy access according with a local/remote proxy.pac.
+If your user agent is behind of the corporate proxy server and it does not recognize proxy.pac,
+Proxypac transfers both your Internet and Intranet access correctly.
 
 ## Usage
 
-    $ bundle exec pacproxy
+You can run pacproxy with specified proxy.pac location, running port and so on.
+
+    $ bundle exec pacproxy -P http://sample.org/proxy.pac -p 3128
+
+or
+
+    $ bundle exec pacproxy -P /opt/pacproxy/sample-proxy.pac -p 3128
 
 or
 
     $ bundle exec pacproxy -c pacproxy.yml
 
-or
-
-    $ bundle exec pacproxy -P proxy.pac -p 3128
-
-or
-
-    $ bundle exec pacproxy -P http://sample.org/proxy.pac -p 3128
 
 ## Configuration
 
@@ -38,8 +34,10 @@ Configurable items:
 
 ## Installation
 
-Add this line to your application's Gemfile, for example:
+Puts these lines on Gemfile, for example:
 
+    source 'https://rubygems.org'
+    
     gem 'pacproxy'
     gem 'therubyracer'
 
