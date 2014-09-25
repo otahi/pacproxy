@@ -15,7 +15,10 @@ module Pacproxy
 
     def initialize(file_location, update_interval = 1800)
       @pac = nil
-      begin_update(file_location, update_interval)
+      @file_location = file_location
+      @update_interval = update_interval
+      @runtime = autodetect
+      begin_update
     end
 
     def find(uri)
@@ -27,23 +30,29 @@ module Pacproxy
 
     private
 
-    def begin_update(file_location, update_interval)
+    def autodetect
+      PAC if PAC.runtime
+    rescue
+      Runtime::Node.runtime
+    end
+
+    def begin_update
       is_updated = false
       Thread.new do
         loop do
-          update(file_location)
+          update
           is_updated = true
-          sleep(update_interval)
+          sleep(@update_interval)
         end
       end
       sleep 0.01 until is_updated
     end
 
-    def update(file_location)
-      tmp = PAC.load(file_location)
+    def update
+      tmp = autodetect.load(@file_location)
       @pac = tmp if @pac.nil? || @pac.source != tmp.source
     rescue => e
-      error("#{file_location} update error: #{e}")
+      error("#{@file_location} update error: #{e}")
     end
   end
 end
