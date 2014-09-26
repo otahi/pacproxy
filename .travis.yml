@@ -1,9 +1,9 @@
 language: ruby
 
 before_install:
-  - 'test Node = "$PACPROXY_RUNTIME" && sudo apt-get update'
-  - 'test Node = "$PACPROXY_RUNTIME" && sudo apt-get install node'
-  - 'test Node = "$PACPROXY_RUNTIME" && (cd lib/pacproxy/runtimes/node ; npm install)'
+  - 'test Node = "$PACPROXY_RUNTIME" && sudo apt-get update || true'
+  - 'test Node = "$PACPROXY_RUNTIME" && sudo apt-get install node || true'
+  - 'test Node = "$PACPROXY_RUNTIME" && (cd lib/pacproxy/runtimes/node ; npm install) || true'
 
 rvm:
   - 2.0.0
