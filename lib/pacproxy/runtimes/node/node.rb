@@ -4,6 +4,7 @@ require 'pacproxy/runtimes/base'
 require 'open-uri'
 require 'dnode'
 require 'thread'
+require 'os'
 
 module Pacproxy
   module Runtimes
@@ -28,9 +29,18 @@ module Pacproxy
         @server_thread = Thread.new(@socket) do |s|
           begin
             js = File.join(File.dirname(__FILE__), 'find.js')
-            server = fork { exec "node #{js} #{s}" }
+
+            if OS.windows?
+              server = start_server
+            else
+              server = fork { exec "node #{js} #{s}" }
+            end
           ensure
-            Process.kill(server)
+            if OS.windows?
+              stop_server(server)
+            else
+              Process.kill(server)
+            end
             File.delete(@socket)
           end
         end
@@ -70,6 +80,20 @@ module Pacproxy
 
       def rand_string
         (0...16).map { ('a'..'z').to_a[rand(26)] }.join
+      end
+
+      def start_server
+        require 'win32/process'
+        Process.create(
+                       app_name:          Util.which('node'),
+                       creation_flags:    Process::DETACHED_PROCESS
+                       )
+      end
+
+      def stop_server(server_info)
+        require 'win32/process'
+        return unless server_info || server_info.respond_to?(:process_id)
+        Process.kill('ExitProcess', [server_info.process_id])
       end
     end
   end

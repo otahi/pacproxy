@@ -26,6 +26,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'httpclient', '~> 2.4.0'
   spec.add_development_dependency 'therubyracer', '~> 0.12.1'
   spec.add_development_dependency 'dnode', '~> 0.0.2'
+  spec.add_development_dependency 'os', '~> 0.9.6'
+  spec.add_development_dependency 'win32-process', '~> 0.7.4'
 
   spec.add_development_dependency 'rubocop', '0.24.1'
   spec.add_development_dependency 'coveralls', '~> 0.7'
