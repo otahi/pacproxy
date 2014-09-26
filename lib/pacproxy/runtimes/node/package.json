@@ -1,0 +1,15 @@
+{
+  "name": "pacproxy",
+  "description": "A proxy server works with proxy.pac",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/otahi/pacproxy.git"
+  },
+  "dependencies": {
+    "dnode": "^1.2.0",
+    "pac-resolver": "^1.2.2"
+  },
+  "author": "Hiroshi OTA",
+  "license": "MIT",
+  "readme": "See: https://github.com/otahi/pacproxy"
+}
