@@ -1,0 +1,7 @@
+# Avoid methods longer than 10 lines of code
+MethodLength:
+  Enabled: false
+
+# Avoid classes longer than 100 lines of code
+ClassLength:
+  Enabled: false
