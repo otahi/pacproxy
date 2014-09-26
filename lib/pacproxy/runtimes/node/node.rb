@@ -1,13 +1,14 @@
 require 'pacproxy'
-require 'tempfile'
+require 'pacproxy/runtimes/base'
+
 require 'open-uri'
 require 'dnode'
 require 'thread'
 
 module Pacproxy
-  module Runtime
-    # Pacproxy::Runtime::Node represet node js runtime
-    class Node
+  module Runtimes
+    # Pacproxy::Runtimes::Node represet node js runtime
+    class Node < Base
       include Loggable
 
       attr_reader :source
@@ -24,7 +25,7 @@ module Pacproxy
       def initialize
         @socket = File.join(Dir.tmpdir, "pacproxy-#{rand_string}")
 
-        Thread.new(@socket) do |s|
+        @server_thread = Thread.new(@socket) do |s|
           begin
             js = File.join(File.dirname(__FILE__), 'find.js')
             server = fork { exec "node #{js} #{s}" }
@@ -33,15 +34,17 @@ module Pacproxy
             File.delete(@socket)
           end
         end
-        loop until File.exist?(@socket)
+        sleep 0.01 until File.exist?(@socket)
       end
 
-      def load(file_location)
+      def shutdown
+        @server_thread.kill
+      end
+
+      def update(file_location)
         @source = open(file_location, proxy: false).read
-        self
       rescue
         @source = nil
-        self
       end
 
       def find(url)

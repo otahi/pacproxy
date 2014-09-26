@@ -15,6 +15,11 @@ module Pacproxy
                          config['pac_file']['update_interval'])
     end
 
+    def shutdown
+      @pac.shutdown
+      super
+    end
+
     def proxy_uri(req, res)
       super(req, res)
       return unless @pac

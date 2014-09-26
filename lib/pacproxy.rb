@@ -7,7 +7,7 @@ require 'pacproxy/general_logger'
 require 'pacproxy/access_logger'
 require 'pacproxy/config'
 
-require 'pacproxy/runtimes/node/node'
+require 'pacproxy/runtime'
 
 # Pacproxy provides http/https proxy routed with proxy.pac.
 module Pacproxy
