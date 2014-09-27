@@ -33,7 +33,9 @@ Configurable items:
 - access log 
 
 ## Installation
+You can select Ruby javascript runtimes or Node.js
 
+### With a Ruby javascript runtime
 Puts these lines on Gemfile, for example:
 
     source 'https://rubygems.org'
@@ -45,16 +47,29 @@ And then execute:
 
     $ bundle
 
+### With Node.js
+Install node.js runtime before this installation.
+Puts these lines on Gemfile, for example:
+
+    source 'https://rubygems.org'
+    
+    gem 'pacproxy'
+
+And then execute:
+
+    $ bundle
+    $ bundle exec pacproxy --npminstall
+
 ## Requirements
 
 Before or After installing the `pacproxy` gem,
-you need to install a JavaScript runtime. Compatible runtimes include
-(see [pac](https://github.com/samuelkadolph/ruby-pac/blob/master/README.md)):
+you need to install a JavaScript runtime.:
 
 * [therubyracer](https://rubygems.org/gems/therubyracer) Google V8 embedded within Ruby
 * [therubyrhino](https://rubygems.org/gems/therubyrhino/) Mozilla Rhino embedded within JRuby
 * [johnson](https://rubygems.org/gems/johnson/) Mozilla SpiderMonkey embedded within Ruby 1.8
 * [mustang](https://rubygems.org/gems/mustang/) Mustang V8 embedded within Ruby
+* [Node.js](http://nodejs.org/) Node.js runtime
 
 ## Contributing
 
