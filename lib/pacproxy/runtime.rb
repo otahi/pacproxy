@@ -26,7 +26,7 @@ module Pacproxy
     private
 
     def autodetect
-      name = ENV['PROXYPAC_RUNTIME']
+      name = ENV['PACPROXY_RUNTIME']
       return Runtimes::Node.runtime if name || /Node/ =~ name
 
       ENV['JS_RUNTIME'] = name
