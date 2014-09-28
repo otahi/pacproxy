@@ -26,29 +26,25 @@ module Pacproxy
       def initialize
         @socket = File.join(Dir.tmpdir, "pacproxy-#{rand_string}")
 
-        @server_thread = Thread.new(@socket) do |s|
-          begin
-            js = File.join(File.dirname(__FILE__), 'find.js')
+        js = File.join(File.dirname(__FILE__), 'find.js')
 
-            if OS.windows?
-              server = start_server
-            else
-              server = fork { exec "node #{js} #{s}" }
-            end
-          ensure
-            if OS.windows?
-              stop_server(server)
-            else
-              Process.kill(server)
-            end
-            File.delete(@socket)
-          end
+        if OS.windows?
+          @server_pid = start_server
+        else
+          @server_pid = fork { exec 'node', js, @socket }
+          Process.detach(@server_pid)
         end
+
         sleep 0.01 until File.exist?(@socket)
       end
 
       def shutdown
-        @server_thread.kill
+        if OS.windows?
+          stop_server(@server_pid)
+        else
+          Process.kill(:INT, @server_pid)
+        end
+        File.delete(@socket)
       end
 
       def update(file_location)
