@@ -31,7 +31,7 @@ module Pacproxy
         if OS.windows?
           @server_pid = start_server
         else
-          @server_pid = fork { exec 'node', js, @socket }
+          @server_pid = fork { exec('node', js, @socket) }
           Process.detach(@server_pid)
         end
 
