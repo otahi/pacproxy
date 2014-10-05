@@ -81,7 +81,7 @@ module Pacproxy
       def call_find(uri, retries = 3)
         proxy = nil
         begin
-          Timeout.timeout(TIMEOUT_JS_CALL) do
+          thread = Thread.new do
             DNode.new.connect(@socket) do |remote|
               remote.find(@source, uri, uri.host,
                           proc do |p|
@@ -90,6 +90,7 @@ module Pacproxy
                           end)
             end
           end
+          thread.join(TIMEOUT_JS_CALL)
           proxy
         rescue Timeout::Error
           if retries > 0
