@@ -13,6 +13,7 @@ module Pacproxy
       include Loggable
 
       TIMEOUT_JS_CALL = 0.5
+      TIMEOUT_JS_SERVER = 5
       attr_reader :source
 
       def self.runtime
@@ -29,14 +30,28 @@ module Pacproxy
 
         js = File.join(File.dirname(__FILE__), 'find.js')
 
-        if OS.windows?
-          @server_pid = start_server
-        else
-          @server_pid = fork { exec('node', js, @socket) }
-          Process.detach(@server_pid)
+        retries = 3
+        begin
+          Timeout.timeout(TIMEOUT_JS_SERVER) do
+            if OS.windows?
+              @server_pid = start_server
+            else
+              @server_pid = fork { exec('node', js, @socket) }
+              Process.detach(@server_pid)
+            end
+            sleep 0.01 until File.exist?(@socket)
+          end
+        rescue Timeout::Error
+          shutdown
+          if retries > 0
+            retries -= 1
+            lwarn('Timeout. Initialize Node.js server.')
+            retry
+          else
+            error('Gave up to retry Initialize Node.js server.')
+            raise 'Gave up to retry Initialize Node.js server.'
+          end
         end
-
-        sleep 0.01 until File.exist?(@socket)
       end
 
       def shutdown
@@ -45,7 +60,7 @@ module Pacproxy
         else
           Process.kill(:INT, @server_pid)
         end
-        File.delete(@socket)
+        File.delete(@socket) if File.exist?(@socket)
       end
 
       def update(file_location)
