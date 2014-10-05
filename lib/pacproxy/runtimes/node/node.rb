@@ -12,6 +12,7 @@ module Pacproxy
     class Node < Base
       include Loggable
 
+      TIMEOUT_JS_CALL = 0.5
       attr_reader :source
 
       def self.runtime
@@ -62,16 +63,29 @@ module Pacproxy
 
       private
 
-      def call_find(uri)
+      def call_find(uri, retries = 3)
         proxy = nil
-        DNode.new.connect(@socket) do |remote|
-          remote.find(@source, uri, uri.host,
-                      proc do |p|
-                        proxy = p
-                        EM.stop
-                      end)
+        begin
+          Timeout.timeout(TIMEOUT_JS_CALL) do
+            DNode.new.connect(@socket) do |remote|
+              remote.find(@source, uri, uri.host,
+                          proc do |p|
+                            proxy = p
+                            EM.stop
+                          end)
+            end
+          end
+          proxy
+        rescue Timeout::Error
+          if retries > 0
+            retries -= 1
+            lwarn('Timeout. Retring call_find.')
+            retry
+          else
+            error('Gave up Retry call_find.')
+            nil
+          end
         end
-        proxy
       end
 
       def rand_string
