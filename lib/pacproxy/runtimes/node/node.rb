@@ -26,20 +26,21 @@ module Pacproxy
       end
 
       def initialize
-        @socket = File.join(Dir.tmpdir, "pacproxy-#{rand_string}")
-
         js = File.join(File.dirname(__FILE__), 'find.js')
 
         retries = 3
         begin
           Timeout.timeout(TIMEOUT_JS_SERVER) do
+            server = TCPServer.new('127.0.0.1', 0)
+            @port = server.addr[1]
+            server.close
             if OS.windows?
               @server_pid = start_server
             else
-              @server_pid = fork { exec('node', js, @socket) }
+              @server_pid = fork { exec('node', js, @port.to_s) }
               Process.detach(@server_pid)
             end
-            sleep 0.01 until File.exist?(@socket)
+            sleep 0.01 until port_open?
           end
         rescue Timeout::Error
           shutdown
@@ -60,7 +61,6 @@ module Pacproxy
         else
           Process.kill(:INT, @server_pid)
         end
-        File.delete(@socket) if File.exist?(@socket)
       end
 
       def update(file_location)
@@ -72,17 +72,29 @@ module Pacproxy
       def find(url)
         return 'DIRECT' unless @source
         uri = URI.parse(url)
-
         call_find(uri)
       end
 
       private
 
+      def port_open?
+        Timeout.timeout(TIMEOUT_JS_CALL) do
+          begin
+            TCPSocket.new('127.0.0.1', @port).close
+            return true
+          rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+            return false
+          end
+        end
+      rescue Timeout::Error
+        false
+      end
+
       def call_find(uri, retries = 3)
         proxy = nil
         begin
           thread = Thread.new do
-            DNode.new.connect(@socket) do |remote|
+            DNode.new.connect('127.0.0.1', @port) do |remote|
               remote.find(@source, uri, uri.host,
                           proc do |p|
                             proxy = p
