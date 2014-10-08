@@ -19,6 +19,9 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency 'pac', '~> 1.0.0'
+  spec.add_dependency 'dnode', '~> 0.0.2'
+  spec.add_dependency 'os', '~> 0.9.6'
+  spec.add_dependency 'win32-process', '~> 0.7.4'
 
   spec.add_development_dependency 'bundler', '~> 1.6'
   spec.add_development_dependency 'rspec', '~> 3.0.0'

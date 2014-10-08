@@ -25,6 +25,16 @@ OptionParser.new do |o|
   o.on('-P PROXYPAC', String, 'specify proxy.pac location') do |pac|
     config.merge!('pac_file' => { 'location' => pac })
   end
+  o.on('--npminstall', 'install node libraries') do
+    fail 'No npm found!' unless Pacproxy::Util.which('npm')
+
+    node_dir = File.join([File.dirname(__FILE__)] +
+                         %w(.. lib pacproxy runtimes node))
+    FileUtils.cd(node_dir) do
+      system('npm install')
+    end
+    exit
+  end
   o.on('-h', 'show this help') do
     puts o
     exit

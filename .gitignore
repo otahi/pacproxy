@@ -25,6 +25,7 @@ build/
 /.bundle/
 /lib/bundler/man/
 /vendor/
+/lib/pacproxy/runtimes/node/node_modules/
 
 # for a library or gem, you might want to ignore these files since the code is
 # intended to run in multiple environments; otherwise, check them in:
@@ -37,3 +38,6 @@ Gemfile.lock
 
 # for log files
 *.log
+
+# for backup files
+*.bak

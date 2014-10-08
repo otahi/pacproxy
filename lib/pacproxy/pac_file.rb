@@ -8,42 +8,34 @@ module Pacproxy
   class PacFile
     include Loggable
 
-    @js_lock = Mutex.new
-    class << self
-      attr_reader :js_lock
+    def initialize(file_location, update_interval = 1800)
+      @file_location = file_location
+      @update_interval = update_interval
+      @runtime = Runtime.new
+      begin_update
     end
 
-    def initialize(file_location, update_interval = 1800)
-      @pac = nil
-      begin_update(file_location, update_interval)
+    def shutdown
+      @runtime.shutdown
     end
 
     def find(uri)
-      return 'DIRECT' unless @pac
-      PacFile.js_lock.synchronize do
-        @pac.find(uri)
-      end
+      return 'DIRECT' unless @runtime
+      @runtime.find(uri)
     end
 
     private
 
-    def begin_update(file_location, update_interval)
+    def begin_update
       is_updated = false
       Thread.new do
         loop do
-          update(file_location)
+          @runtime.update(@file_location)
           is_updated = true
-          sleep(update_interval)
+          sleep(@update_interval)
         end
       end
       sleep 0.01 until is_updated
-    end
-
-    def update(file_location)
-      tmp = PAC.load(file_location)
-      @pac = tmp if @pac.nil? || @pac.source != tmp.source
-    rescue => e
-      error("#{file_location} update error: #{e}")
     end
   end
 end
