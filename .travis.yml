@@ -1,4 +1,5 @@
 language: ruby
+cache: bundler
 
 before_install:
   - 'test Node = "$PACPROXY_RUNTIME" && sudo apt-get update || true'
