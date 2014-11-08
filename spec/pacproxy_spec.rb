@@ -152,6 +152,32 @@ describe Pacproxy do
       expect(res.status).to eq(200)
     end
 
+    it 'transfer request with overridden auth to server via parent proxy' do
+      auth = nil
+      proxy_proc = proc do |req, _resp|
+        auth = req.header['proxy-authorization']
+      end
+
+      pc = @proxy_server.instance_variable_get('@config')
+      @proxy_server.instance_variable_set('@config',
+                                          pc.merge(ProxyAuthProc: proxy_proc))
+
+      c = Pacproxy::Config.instance.config
+      c['port'] = 13_128
+      c['pac_file']['location'] = 'spec/partial_proxy.pac'
+      c['auth'] = { 'user' => 'user01', 'password' => 'pass01' }
+
+      @pacproxy_server = Pacproxy::Pacproxy.new(c)
+      Thread.new { @pacproxy_server.start }
+      wait_server_status(@pacproxy_server, :Running)
+
+      c = HTTPClient.new('http://127.0.0.1:13128')
+      res = c.get('http://127.0.0.1:13080/')
+      expect(res.status).to eq(200)
+      expect(auth)
+        .to eq([%Q(Basic #{['user01:pass01'].pack('m').delete("\n")})])
+    end
+
     it 'respond 407 when upstrem proxy respond 407 on http' do
       proxy_proc = proc do |_req, resp|
         resp.header.merge!('Proxy-Authenticate' => "Basic realm=\"proxy\"")
