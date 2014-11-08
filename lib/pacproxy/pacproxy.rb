@@ -9,6 +9,7 @@ module Pacproxy
 
     def initialize(config = {}, default = WEBrick::Config::HTTP)
       super({ Port: config['port'], Logger: general_logger }, default)
+      @auth = config['auth']
       return unless config['pac_file'] && config['pac_file']['location']
 
       @pac = PacFile.new(config['pac_file']['location'],
@@ -32,16 +33,20 @@ module Pacproxy
     def create_proxy_uri(proxy, header)
       return nil unless proxy
       return URI.parse("http://#{proxy}") unless
-        header.key?('proxy-authorization')
+        @auth || header.key?('proxy-authorization')
 
-      auth = header['proxy-authorization'][0]
-      pattern = /basic (\S+)/i
-      basic_auth = pattern.match(auth)[1]
-      header.delete('proxy-authorization')
+      if header.key?('proxy-authorization')
+        auth = header['proxy-authorization'][0]
+        pattern = /basic (\S+)/i
+        basic_auth = pattern.match(auth)[1].unpack('m').first
+        header.delete('proxy-authorization')
+      end
+
+      basic_auth = "#{@auth['user']}:#{@auth['password']}" if @auth
 
       return URI.parse("http://#{proxy}") unless basic_auth
 
-      URI.parse("http://#{basic_auth.unpack('m').first}@#{proxy}")
+      URI.parse("http://#{basic_auth}@#{proxy}")
     end
 
     # This method is mainly from WEBrick::HTTPProxyServer.

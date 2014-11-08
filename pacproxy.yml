@@ -19,6 +19,16 @@ pac_file:
 # eg. update_interval: 1800
   update_interval: 1800
 
+# upstream proxy authorization related items
+# auth > user: [string]
+# user name for upstream proxy server
+# auth > password: [string]
+# password for upstream proxy server
+# eg.
+# auth:
+#   user: user100
+#   password: abcd1234
+
 # general log related items
 general_log:
 # general_log > location: [string]
