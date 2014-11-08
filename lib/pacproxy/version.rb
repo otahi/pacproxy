@@ -1,4 +1,4 @@
 # Pacproxy provides http/https proxy routed with proxy.pac.
 module Pacproxy
-  VERSION = '0.0.7dev'
+  VERSION = '0.0.7'
 end
