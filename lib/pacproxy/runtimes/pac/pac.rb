@@ -30,8 +30,10 @@ module Pacproxy
       end
 
       def update(file_location)
-        tmp = PAC.load(file_location)
-        @pac = tmp if @pac.nil? || @pac.source != tmp.source
+        Pac.js_lock.synchronize do
+          tmp = PAC.load(file_location)
+          @pac = tmp if @pac.nil? || @pac.source != tmp.source
+        end
       rescue => e
         error("#{file_location} update error: #{e}")
       end
