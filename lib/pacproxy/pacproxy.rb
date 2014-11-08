@@ -35,16 +35,14 @@ module Pacproxy
       return URI.parse("http://#{proxy}") unless
         @auth || header.key?('proxy-authorization')
 
-      if header.key?('proxy-authorization')
+      if @auth
+        basic_auth = "#{@auth['user']}:#{@auth['password']}"
+      elsif header.key?('proxy-authorization')
         auth = header['proxy-authorization'][0]
         pattern = /basic (\S+)/i
         basic_auth = pattern.match(auth)[1].unpack('m').first
         header.delete('proxy-authorization')
       end
-
-      basic_auth = "#{@auth['user']}:#{@auth['password']}" if @auth
-
-      return URI.parse("http://#{proxy}") unless basic_auth
 
       URI.parse("http://#{basic_auth}@#{proxy}")
     end
