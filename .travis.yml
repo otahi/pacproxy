@@ -7,9 +7,7 @@ before_install:
   - 'test Node = "$PACPROXY_RUNTIME" && (cd lib/pacproxy/runtimes/node ; npm install) || true'
 
 rvm:
-  - 2.0.0
   - 2.1.4
 
 env:
   - PACPROXY_RUNTIME=Node
-  - PACPROXY_RUNTIME=
