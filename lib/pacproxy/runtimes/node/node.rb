@@ -129,10 +129,6 @@ module Pacproxy
         end
       end
 
-      def rand_string
-        (0...16).map { ('a'..'z').to_a[rand(26)] }.join
-      end
-
       def start_server
         require 'win32/process'
         Process.create(
