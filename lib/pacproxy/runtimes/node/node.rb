@@ -85,7 +85,9 @@ module Pacproxy
         STDOUT.puts "calling find"
         return 'DIRECT' unless @source
         uri = URI.parse(url)
-        call_find(uri)
+        Node.js_lock.synchronize do
+          call_find(uri)
+        end
       end
 
       private
@@ -108,16 +110,14 @@ module Pacproxy
         proxy = nil
         begin
           thread = Thread.new do
-            Node.js_lock.synchronize do
-              STDOUT.puts "calling call_find in thread retries:#{retries}"
-              DNode.new.connect('127.0.0.1', @port) do |remote|
-                STDOUT.puts "calling call_find in Dnode retries:#{retries}"
-                remote.find(@source, uri, uri.host,
-                            proc do |p|
-                              proxy = p
-                              EM.stop
-                            end)
-              end
+            STDOUT.puts "calling call_find in thread retries:#{retries}"
+            DNode.new.connect('127.0.0.1', @port) do |remote|
+              STDOUT.puts "calling call_find in Dnode retries:#{retries}"
+              remote.find(@source, uri, uri.host,
+                          proc do |p|
+                            proxy = p
+                            EM.stop
+                          end)
             end
           end
           STDOUT.puts "joining call_find thread retries:#{retries}"
