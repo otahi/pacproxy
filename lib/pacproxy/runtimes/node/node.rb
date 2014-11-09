@@ -93,13 +93,13 @@ module Pacproxy
       private
 
       def port_open?
-        Timeout.timeout(TIMEOUT_JS_CALL) do
-          begin
+        begin
+          Timeout.timeout(TIMEOUT_JS_CALL) do
             TCPSocket.new('127.0.0.1', @port).close
             return true
-          rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
-            return false
           end
+        rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+          return false
         end
       rescue Timeout::Error
         false
@@ -108,16 +108,19 @@ module Pacproxy
       def call_find(uri, retries = 3)
         STDOUT.puts "calling call_find retries:#{retries}"
         proxy = nil
+        thread = nil
         begin
-          thread = Thread.new do
-            STDOUT.puts "calling call_find in thread retries:#{retries} port:#{@port}"
-            DNode.new.connect('127.0.0.1', @port) do |remote|
-              STDOUT.puts "calling call_find in Dnode retries:#{retries}"
-              remote.find(@source, uri, uri.host,
-                          proc do |p|
-                            proxy = p
-                            EM.stop
-                          end)
+          Timeout.timeout(TIMEOUT_JS_CALL) do
+            thread = Thread.new do
+              STDOUT.puts "calling call_find in thread retries:#{retries} port:#{@port}"
+              DNode.new.connect('127.0.0.1', @port) do |remote|
+                STDOUT.puts "calling call_find in Dnode retries:#{retries}"
+                remote.find(@source, uri, uri.host,
+                            proc do |p|
+                              proxy = p
+                              EM.stop
+                            end)
+              end
             end
           end
           STDOUT.puts "joining call_find thread retries:#{retries}"
