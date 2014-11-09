@@ -16,6 +16,11 @@ module Pacproxy
       TIMEOUT_JS_SERVER = 5
       attr_reader :source
 
+      @js_lock = Mutex.new
+      class << self
+        attr_reader :js_lock
+      end
+
       def self.runtime
         if Util.which('node').nil?
           error('No PAC supported runtime')
@@ -66,10 +71,12 @@ module Pacproxy
       end
 
       def update(file_location)
-        STDOUT.puts "calling update"
-        @source = open(file_location, proxy: false).read
-        STDOUT.puts "called update"
-        @source
+        Node.js_lock.synchronize do
+          STDOUT.puts "calling update"
+          @source = open(file_location, proxy: false).read
+          STDOUT.puts "called update"
+          @source
+        end
       rescue
         @source = nil
       end
@@ -101,14 +108,16 @@ module Pacproxy
         proxy = nil
         begin
           thread = Thread.new do
-            STDOUT.puts "calling call_find in thread retries:#{retries}"
-            DNode.new.connect('127.0.0.1', @port) do |remote|
-              STDOUT.puts "calling call_find in Dnode retries:#{retries}"
-              remote.find(@source, uri, uri.host,
-                          proc do |p|
-                            proxy = p
-                            EM.stop
-                          end)
+            Node.js_lock.synchronize do
+              STDOUT.puts "calling call_find in thread retries:#{retries}"
+              DNode.new.connect('127.0.0.1', @port) do |remote|
+                STDOUT.puts "calling call_find in Dnode retries:#{retries}"
+                remote.find(@source, uri, uri.host,
+                            proc do |p|
+                              proxy = p
+                              EM.stop
+                            end)
+              end
             end
           end
           STDOUT.puts "joining call_find thread retries:#{retries}"
