@@ -16,6 +16,11 @@ module Pacproxy
       TIMEOUT_JS_SERVER = 5
       attr_reader :source
 
+      @js_lock = Mutex.new
+      class << self
+        attr_reader :js_lock
+      end
+
       def self.runtime
         if Util.which('node').nil?
           error('No PAC supported runtime')
@@ -31,16 +36,18 @@ module Pacproxy
         retries = 3
         begin
           Timeout.timeout(TIMEOUT_JS_SERVER) do
-            server = TCPServer.new('127.0.0.1', 0)
-            @port = server.addr[1]
-            server.close
-            if OS.windows?
-              @server_pid = start_server
-            else
-              @server_pid = fork { exec('node', js, @port.to_s) }
-              Process.detach(@server_pid)
+            Node.js_lock.synchronize do
+              server = TCPServer.new('127.0.0.1', 0)
+              @port = server.addr[1]
+              server.close
+              if OS.windows?
+                @server_pid = start_server
+              else
+                @server_pid = fork { exec('node', js, @port.to_s) }
+                Process.detach(@server_pid)
+              end
+              sleep 0.01 until port_open?
             end
-            sleep 0.01 until port_open?
           end
         rescue Timeout::Error
           shutdown
@@ -56,15 +63,19 @@ module Pacproxy
       end
 
       def shutdown
-        if OS.windows?
-          stop_server(@server_pid)
-        else
-          Process.kill(:INT, @server_pid)
+        Node.js_lock.synchronize do
+          if OS.windows?
+            stop_server(@server_pid)
+          else
+            Process.kill(:INT, @server_pid)
+          end
         end
       end
 
       def update(file_location)
-        @source = open(file_location, proxy: false).read
+        Node.js_lock.synchronize do
+          @source = open(file_location, proxy: false).read
+        end
       rescue
         @source = nil
       end
@@ -94,12 +105,14 @@ module Pacproxy
         proxy = nil
         begin
           thread = Thread.new do
-            DNode.new.connect('127.0.0.1', @port) do |remote|
-              remote.find(@source, uri, uri.host,
-                          proc do |p|
-                            proxy = p
-                            EM.stop
-                          end)
+            Node.js_lock.synchronize do
+              DNode.new.connect('127.0.0.1', @port) do |remote|
+                remote.find(@source, uri, uri.host,
+                            proc do |p|
+                              proxy = p
+                              EM.stop
+                            end)
+              end
             end
           end
           thread.join(TIMEOUT_JS_CALL)
