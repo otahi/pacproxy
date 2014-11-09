@@ -43,7 +43,7 @@ module Pacproxy
             if OS.windows?
               @server_pid = start_server
             else
-              STDOUT.puts "forking"
+              STDOUT.puts "forking port:#{@port}"
               @server_pid = fork { exec('node', js, @port.to_s) }
               Process.detach(@server_pid)
             end
@@ -110,7 +110,7 @@ module Pacproxy
         proxy = nil
         begin
           thread = Thread.new do
-            STDOUT.puts "calling call_find in thread retries:#{retries}"
+            STDOUT.puts "calling call_find in thread retries:#{retries} port:#{@port}"
             DNode.new.connect('127.0.0.1', @port) do |remote|
               STDOUT.puts "calling call_find in Dnode retries:#{retries}"
               remote.find(@source, uri, uri.host,
