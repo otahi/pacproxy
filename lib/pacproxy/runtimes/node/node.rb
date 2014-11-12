@@ -109,6 +109,12 @@ module Pacproxy
         STDOUT.puts "calling call_find retries:#{retries}"
         proxy = nil
         thread = nil
+        set_trace_func proc { |event, file, line, id, binding, classname|
+          unless file.include? 'simplecov'
+            printf("%8s %s:%-2d %10s %8s\n", event, file, line, id, classname)
+          end
+        }
+
         begin
           Timeout.timeout(TIMEOUT_JS_CALL) do
             thread = Thread.new do
@@ -126,6 +132,7 @@ module Pacproxy
           STDOUT.puts "joining call_find thread retries:#{retries}"
           thread.join(TIMEOUT_JS_CALL)
           STDOUT.puts "joined call_find thread retries:#{retries}"
+          set_trace_func proc
           proxy
         rescue Timeout::Error
           if retries > 0
@@ -134,6 +141,7 @@ module Pacproxy
             retry
           else
             error('Gave up Retry call_find.')
+            set_trace_func proc
             nil
           end
         end
