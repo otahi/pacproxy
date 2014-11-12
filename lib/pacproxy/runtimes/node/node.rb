@@ -72,10 +72,7 @@ module Pacproxy
 
       def update(file_location)
         Node.js_lock.synchronize do
-          STDOUT.puts "calling update"
           @source = open(file_location, proxy: false).read
-          STDOUT.puts "called update"
-          @source
         end
       rescue
         @source = nil
@@ -106,11 +103,10 @@ module Pacproxy
       end
 
       def call_find(uri, retries = 3)
-        STDOUT.puts "calling call_find retries:#{retries}"
         proxy = nil
         thread = nil
         set_trace_func proc { |event, file, line, id, binding, classname|
-          unless file.include? 'simplecov'
+          unless file.include?('simplecov') || file.include?('rspec')
             printf("%8s %s:%-2d %10s %8s\n", event, file, line, id, classname)
           end
         }
@@ -129,10 +125,8 @@ module Pacproxy
               end
             end
           end
-          STDOUT.puts "joining call_find thread retries:#{retries}"
           thread.join(TIMEOUT_JS_CALL)
-          STDOUT.puts "joined call_find thread retries:#{retries}"
-          set_trace_func proc
+          set_trace_func proc {}
           proxy
         rescue Timeout::Error
           if retries > 0
@@ -141,7 +135,7 @@ module Pacproxy
             retry
           else
             error('Gave up Retry call_find.')
-            set_trace_func proc
+            set_trace_func proc {}
             nil
           end
         end
