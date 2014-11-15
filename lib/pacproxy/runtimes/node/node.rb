@@ -46,6 +46,7 @@ module Pacproxy
             initialize_client
           end
         rescue Timeout::Error
+          shutdown
           if retries > 0
             retries -= 1
             lwarn('Timeout. Initialize Node.js server.')
