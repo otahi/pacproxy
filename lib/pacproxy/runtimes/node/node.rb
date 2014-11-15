@@ -58,10 +58,10 @@ module Pacproxy
       end
 
       def shutdown
+        @client_thread.kill
         if OS.windows?
           stop_server(@server_pid)
         else
-          @client_thread.kill
           Process.kill(:INT, @server_pid)
         end
       end
