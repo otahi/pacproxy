@@ -41,9 +41,18 @@ module Pacproxy
               Process.detach(@server_pid)
             end
             sleep 0.01 until port_open?
+
+            @queue = Queue.new
+            @client_thread = Thread.new do
+              DNode.new.connect('127.0.0.1', @port) do |remote|
+                q = @queue.pop
+                if q[:uri] && q[:uri].host && q[:call_back]
+                  remote.find(@source, q[:uri], q[:uri].host, q[:call_back])
+                end
+              end
+            end
           end
         rescue Timeout::Error
-          shutdown
           if retries > 0
             retries -= 1
             lwarn('Timeout. Initialize Node.js server.')
@@ -59,6 +68,7 @@ module Pacproxy
         if OS.windows?
           stop_server(@server_pid)
         else
+          @client_thread.kill
           Process.kill(:INT, @server_pid)
         end
       end
@@ -94,12 +104,15 @@ module Pacproxy
         proxy = nil
         begin
           thread = Thread.new do
-            DNode.new.connect('127.0.0.1', @port) do |remote|
-              remote.find(@source, uri, uri.host,
-                          proc do |p|
-                            proxy = p
-                            EM.stop
-                          end)
+            called = false
+            @queue.push(uri: uri,
+                        call_back: proc do |p|
+                          proxy = p
+                          called = true
+                        end)
+            loop do
+              break if called
+              sleep 0.01
             end
           end
           thread.join(TIMEOUT_JS_CALL)
