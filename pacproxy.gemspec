@@ -21,7 +21,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'pac', '~> 1.0.0'
   spec.add_dependency 'dnode', '~> 0.0.2'
   spec.add_dependency 'os', '~> 0.9.6'
-  spec.add_dependency 'win32-process', '~> 0.7.4'
+  if  /cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM
+    spec.add_dependency 'win32-process', '~> 0.7.4'
+  end
 
   spec.add_development_dependency 'bundler', '~> 1.6'
   spec.add_development_dependency 'rspec', '~> 3.0.0'
