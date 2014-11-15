@@ -43,15 +43,7 @@ module Pacproxy
             end
             sleep 0.01 until port_open?
 
-            @queue = Queue.new
-            @client_thread = Thread.new do
-              DNode.new.connect('127.0.0.1', @port) do |remote|
-                q = @queue.pop
-                if q[:uri] && q[:uri].host && q[:call_back]
-                  remote.find(@source, q[:uri], q[:uri].host, q[:call_back])
-                end
-              end
-            end
+            initialize_client
           end
         rescue Timeout::Error
           if retries > 0
@@ -87,6 +79,18 @@ module Pacproxy
       end
 
       private
+
+      def initialize_client
+        @queue = Queue.new
+        @client_thread = Thread.new do
+          DNode.new.connect('127.0.0.1', @port) do |remote|
+            q = @queue.pop
+            if q[:uri] && q[:uri].host && q[:call_back]
+              remote.find(@source, q[:uri], q[:uri].host, q[:call_back])
+            end
+          end
+        end
+      end
 
       def port_open?
         Timeout.timeout(TIMEOUT_JS_CALL) do
