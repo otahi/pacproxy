@@ -20,7 +20,8 @@ module Pacproxy
     end
 
     def shutdown
-      @runtime.shutdown
+      @update_thread.kill if @update_thread
+      @runtime.shutdown   if @runtime
     end
 
     def find(uri)
@@ -32,7 +33,7 @@ module Pacproxy
 
     def begin_update
       is_updated = false
-      Thread.new do
+      @update_thread = Thread.new do
         loop do
           @runtime.update(@file_location)
           is_updated = true

@@ -4,6 +4,7 @@ require 'pacproxy/runtimes/base'
 require 'open-uri'
 require 'dnode'
 require 'thread'
+require 'monitor'
 require 'os'
 
 module Pacproxy
@@ -41,6 +42,8 @@ module Pacproxy
               Process.detach(@server_pid)
             end
             sleep 0.01 until port_open?
+
+            initialize_client
           end
         rescue Timeout::Error
           shutdown
@@ -56,6 +59,7 @@ module Pacproxy
       end
 
       def shutdown
+        @client_thread.kill if @client_thread
         if OS.windows?
           stop_server(@server_pid)
         else
@@ -77,6 +81,18 @@ module Pacproxy
 
       private
 
+      def initialize_client
+        @queue = Queue.new
+        @client_thread = Thread.new do
+          DNode.new.connect('127.0.0.1', @port) do |remote|
+            q = @queue.pop
+            if q[:uri] && q[:uri].host && q[:call_back]
+              remote.find(@source, q[:uri], q[:uri].host, q[:call_back])
+            end
+          end
+        end
+      end
+
       def port_open?
         Timeout.timeout(TIMEOUT_JS_CALL) do
           begin
@@ -93,13 +109,16 @@ module Pacproxy
       def call_find(uri, retries = 3)
         proxy = nil
         begin
+          mon = Monitor.new
+          cond = mon.new_cond
           thread = Thread.new do
-            DNode.new.connect('127.0.0.1', @port) do |remote|
-              remote.find(@source, uri, uri.host,
-                          proc do |p|
+            mon.synchronize do
+              @queue.push(uri: uri,
+                          call_back: proc do |p|
                             proxy = p
-                            EM.stop
+                            cond.signal
                           end)
+              cond.wait
             end
           end
           thread.join(TIMEOUT_JS_CALL)
