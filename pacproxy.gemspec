@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = "pacproxy"
   spec.version       = Pacproxy::VERSION
   spec.authors       = ["OTA Hiroshi"]
-  spec.email         = ["ota_h@nifty.com"]
+  spec.email         = ["otahi.pub@gmail.com"]
   spec.summary       = %q{A proxy server works with proxy.pac}
   spec.description   = %q{A proxy server works with proxy.pac}
   spec.homepage      = "https://github.com/otahi/pacproxy"
