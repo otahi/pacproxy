@@ -4,6 +4,7 @@ require 'pacproxy/runtimes/base'
 require 'open-uri'
 require 'dnode'
 require 'thread'
+require 'monitor'
 require 'os'
 
 module Pacproxy
@@ -103,16 +104,16 @@ module Pacproxy
       def call_find(uri, retries = 3)
         proxy = nil
         begin
+          mon = Monitor.new
+          cond = mon.new_cond
           thread = Thread.new do
-            called = false
-            @queue.push(uri: uri,
-                        call_back: proc do |p|
-                          proxy = p
-                          called = true
-                        end)
-            loop do
-              break if called
-              sleep 0.01
+            mon.synchronize do
+              @queue.push(uri: uri,
+                          call_back: proc do |p|
+                            proxy = p
+                            cond.signal
+                          end)
+              cond.wait
             end
           end
           thread.join(TIMEOUT_JS_CALL)
