@@ -107,7 +107,7 @@ module Pacproxy
           handler.call(req, res)
         end
         res.send_response(ua)
-        access_log(@config, req, res)
+        accesslog(req, res)
 
         # Should clear request-line not to send the response twice.
         # see: HTTPServer#run
