@@ -10,7 +10,7 @@ module Pacproxy
     def initialize(file_location, update_interval = 1800)
       begin
         require 'pac'
-      rescue RuntimeUnavailable
+      rescue PAC::RuntimeUnavailable
         info('No javascript runtime found for pac')
       end
       @file_location = file_location
