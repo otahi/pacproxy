@@ -17,7 +17,7 @@ module Pacproxy
     end
 
     def shutdown
-      @pac.shutdown
+      @pac.shutdown if @pac
       super
     end
 
