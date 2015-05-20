@@ -18,7 +18,7 @@ or
 
     $ bundle exec pacproxy -c pacproxy.yml
 
-Or, you can run this as a docker container. See [Readme for Doecker](./box/docker/README.md).
+Or, you can run this as a docker container. See [Readme for Docker](./box/docker/README.md).
 
 ## Configuration
 
