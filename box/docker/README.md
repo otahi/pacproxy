@@ -22,7 +22,7 @@ Put your pacproxy.yml with your own configuration on your currecnt directory.
 docker run -d -p 3128:3128 -v`pwd`:/opt/pacproxy/work -it otahi/pacproxy
 ```
 
-See  [pacproxy.yml](https://github.com/otahi/pacproxy/box/docker/pacproxy.yml).
+See  [pacproxy.yml](pacproxy.yml).
 
 ## Contributing
 
