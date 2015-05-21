@@ -5,7 +5,7 @@ RUN mkdir -p /opt/pacproxy
 RUN mkdir -p /opt/pacproxy/work
 WORKDIR /opt/pacproxy
 
-ADD Gemfile .
+COPY Gemfile ./
 RUN bundle install
 
 ADD pacproxy.yml /opt/pacproxy/work/pacproxy.yml
