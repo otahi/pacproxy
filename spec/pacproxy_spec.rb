@@ -3,6 +3,9 @@ require 'httpclient'
 require 'webrick/https'
 
 def wait_server_status(servers, status)
+  STDOUT.puts(status.to_s)
+  STDOUT
+    .puts(`netstat -ant | grep tcp4 | grep LISTEN | grep 13| sort`)
   return unless servers || status
   servers = [servers] unless servers.respond_to?(:all?)
   return unless servers.all? { |s| s.respond_to?(:status) }

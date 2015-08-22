@@ -108,9 +108,6 @@ module Pacproxy
 
       # TODO: write log
       transfer_data(client_s, server_s)
-    ensure
-      client_s.close
-      server_s.close
     end
 
     def transfer_data(client_s, server_s)
@@ -121,6 +118,11 @@ module Pacproxy
           client_s.write(server_s.read_nonblock(BUFFER_SIZE))
         end
       end
+    rescue => e
+      STDOUT.puts('Error' +  e)
+    ensure
+      server_s.close unless server_s.open?
+      client_s.close unless client_s.open?
     end
 
     def write_proxy_credential(server_s)
