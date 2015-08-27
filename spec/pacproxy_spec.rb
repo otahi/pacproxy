@@ -72,20 +72,28 @@ describe Pacproxy do
     end
 
     it 'transfer request to server directly via HTTPS' do
+      STDERR.puts 'transfer request to server directly via HTTPS started'
       c = Pacproxy::Config.instance.config
       c['port'] = 13_128
       c['pac_file']['location'] = 'spec/all_direct.pac'
       @pacproxy_server = Pacproxy::Pacproxy.new(c)
       Thread.new { @pacproxy_server.start }
       wait_server_status(@pacproxy_server, :Running)
+      STDERR.puts 'pacproxy_server started'
 
+      STDERR.puts 'HTTPClient creating'
       c = HTTPClient.new('http://127.0.0.1:13128')
       c.ssl_config.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      STDERR.puts 'HTTPClient requesting 1'
       res = c.get('https://127.0.0.1:13443/')
+      STDERR.puts 'HTTPClient request 1 done'
       expect(res.status).to eq(200)
 
+      STDERR.puts 'HTTPClient requesting 2'
       res = c.get('https://127.0.0.1:13443/noproxy/')
+      STDERR.puts 'HTTPClient request 2 done'
       expect(res.status).to eq(200)
+      STDERR.puts 'transfer request to server directly via HTTPS exiting'
     end
 
     it 'transfer request to server directly with PUT method' do
