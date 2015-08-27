@@ -2,10 +2,6 @@ require 'pacproxy'
 require 'socket'
 require 'uri'
 
-set_trace_func proc { |event, _file, _line, id, _binding, classname|
-  puts "#{classname} #{id} called" if event == 'call' && !(classname.to_s.include?('SimpleCov'))
-}
-
 module Pacproxy
   # Pacproxy::Pacproxy represent http/https proxy server
   class Pacproxy

@@ -4,8 +4,6 @@ require 'webrick/https'
 
 def wait_server_status(servers, status)
   STDOUT.puts(status.to_s)
-  STDOUT
-    .puts(`netstat -ant | grep tcp4 | grep LISTEN | grep 13| sort`)
   return unless servers || status
   servers = [servers] unless servers.respond_to?(:all?)
   return unless servers.all? { |s| s.respond_to?(:status) }
@@ -43,15 +41,18 @@ describe Pacproxy do
 
     after(:each) do
       $stdout, $stderr = STDOUT, STDERR
+      STDERR.puts 'after called'
       @http_server.shutdown
       @https_server.shutdown
       @proxy_server.shutdown
       @pacproxy_server.shutdown
+      STDERR.puts 'shutdwon call done'
       wait_server_status([@http_server,
                           @https_server,
                           @proxy_server,
                           @pacproxy_server],
                          :Stop)
+      STDERR.puts 'wait_server_status done'
     end
 
     it 'transfer request to server directly' do
