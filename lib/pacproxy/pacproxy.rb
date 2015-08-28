@@ -32,6 +32,8 @@ module Pacproxy
         s = @socket.accept
         Thread.new(s, &method(:handle_request))
       end
+    rescue => e
+      STDERR.puts e
     ensure
       shutdown
     end
