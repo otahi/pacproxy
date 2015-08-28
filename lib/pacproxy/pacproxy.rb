@@ -34,16 +34,13 @@ module Pacproxy
       end
     rescue Errno::EADDRINUSE => e
       STDERR.puts e
-      sleep 3
-      retry
     ensure
       shutdown
     end
 
     def shutdown
       STDERR.puts("start: pacproxy socket.closed?:#{@socket.closed?}") if @socket
-      if @socket && !@socket.closed?
-        @socket.write_nonblock("\0")
+      if @socket
         @socket.close
       end
       @pac.shutdown if @pac
@@ -130,8 +127,8 @@ module Pacproxy
     rescue => e
       STDOUT.puts('Error' +  e)
     ensure
-      server_s.close unless server_s.open?
-      client_s.close unless client_s.open?
+      server_s.close if server_s.open?
+      client_s.close if client_s.open?
     end
 
     def write_proxy_credential(server_s)
