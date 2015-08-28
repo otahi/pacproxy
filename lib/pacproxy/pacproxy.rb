@@ -39,9 +39,11 @@ module Pacproxy
     end
 
     def shutdown
+      STDERR.puts("start: pacproxy socket.closed?:#{@socket.closed?}") if @socket
       @socket.close if @socket
       @pac.shutdown if @pac
       @status = :Stop
+      STDERR.puts("done: pacproxy socket.closed?:#{@socket.closed?}") if @socket
     end
 
     private
