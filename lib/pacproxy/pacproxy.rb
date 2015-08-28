@@ -124,6 +124,8 @@ module Pacproxy
           client_s.write(server_s.read_nonblock(BUFFER_SIZE))
         end
       end
+      server_s.write_nonblock("\0")
+      client_s.write_nonblock("\0")
     rescue => e
       STDOUT.puts('Error' +  e)
     ensure
