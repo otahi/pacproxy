@@ -11,6 +11,7 @@ def wait_server_status(servers, status)
     puts("#{s.class}: #{s.status}")
     s.status == status
   end
+  sleep 3
 end
 
 describe Pacproxy do
