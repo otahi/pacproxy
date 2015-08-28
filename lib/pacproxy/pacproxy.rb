@@ -101,8 +101,8 @@ module Pacproxy
 
       transfer_data(client_s, server_s)
     ensure
-      server_s.close if server_s.open?
-      client_s.close if client_s.open?
+      server_s.close unless server_s.closed?
+      client_s.close unless client_s.closed?
     end
 
     def do_connect(client_s, _method, unparsed_uri, _version)
@@ -129,8 +129,8 @@ module Pacproxy
     rescue => e
       STDOUT.puts('Error' +  e)
     ensure
-      server_s.close if server_s.open?
-      client_s.close if client_s.open?
+      server_s.close unless server_s.closed?
+      client_s.close unless client_s.closed?
     end
 
     def write_proxy_credential(server_s)
