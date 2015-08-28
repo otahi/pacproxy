@@ -32,8 +32,10 @@ module Pacproxy
         s = @socket.accept
         Thread.new(s, &method(:handle_request))
       end
-    rescue => e
+    rescue Errno::EADDRINUSE => e
       STDERR.puts e
+      sleep 3
+      retry
     ensure
       shutdown
     end
