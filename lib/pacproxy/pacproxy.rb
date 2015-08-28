@@ -101,8 +101,8 @@ module Pacproxy
 
       transfer_data(client_s, server_s)
     ensure
-      client_s.close
-      server_s.close
+      server_s.close if server_s.open?
+      client_s.close if client_s.open?
     end
 
     def do_connect(client_s, _method, unparsed_uri, _version)
