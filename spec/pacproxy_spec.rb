@@ -7,7 +7,10 @@ def wait_server_status(servers, status)
   return unless servers || status
   servers = [servers] unless servers.respond_to?(:all?)
   return unless servers.all? { |s| s.respond_to?(:status) }
-  sleep(0.01) until servers.all? { |s| s.status == status }
+  sleep(0.01) until servers.all? do |s|
+    puts("#{s.class}: #{s.status}")
+    s.status == status
+  end
 end
 
 describe Pacproxy do
