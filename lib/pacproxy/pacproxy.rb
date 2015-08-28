@@ -42,7 +42,10 @@ module Pacproxy
 
     def shutdown
       STDERR.puts("start: pacproxy socket.closed?:#{@socket.closed?}") if @socket
-      @socket.close if @socket
+      if @socket && !@socket.closed?
+        @socket.write_nonblock("\0")
+        @socket.close
+      end
       @pac.shutdown if @pac
       @status = :Stop
       STDERR.puts("done: pacproxy socket.closed?:#{@socket.closed?}") if @socket
