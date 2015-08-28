@@ -74,10 +74,14 @@ describe Pacproxy do
     it 'transfer request to server directly via HTTPS' do
       STDERR.puts 'transfer request to server directly via HTTPS started'
       c = Pacproxy::Config.instance.config
+      STDERR.puts 'Pacproxy::Config.instance.config'
       c['port'] = 13_128
       c['pac_file']['location'] = 'spec/all_direct.pac'
+      STDERR.puts 'Pacproxy::Pacproxy.new(c)'
       @pacproxy_server = Pacproxy::Pacproxy.new(c)
+      STDERR.puts 'Thread.new { @pacproxy_server.start } start'
       Thread.new { @pacproxy_server.start }
+      STDERR.puts 'Thread.new { @pacproxy_server.start } end'
       wait_server_status(@pacproxy_server, :Running)
       STDERR.puts 'pacproxy_server started'
 
