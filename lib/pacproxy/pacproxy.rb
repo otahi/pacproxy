@@ -124,13 +124,14 @@ module Pacproxy
           client_s.write(server_s.read_nonblock(BUFFER_SIZE))
         end
       end
-      server_s.write_nonblock("\0")
       client_s.write_nonblock("\0")
+      server_s.write_nonblock("\0")
     rescue => e
       STDOUT.puts('Error' +  e)
     ensure
       server_s.close unless server_s.closed?
       client_s.close unless client_s.closed?
+      STDOUT.puts('server_s client_s closed')
     end
 
     def write_proxy_credential(server_s)
