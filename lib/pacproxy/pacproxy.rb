@@ -34,6 +34,8 @@ module Pacproxy
       end
     rescue Errno::EADDRINUSE => e
       STDERR.puts e
+      sleep 3
+      retry
     ensure
       shutdown
     end
@@ -42,6 +44,7 @@ module Pacproxy
       STDERR.puts("start: pacproxy socket.closed?:#{@socket.closed?}") if @socket
       if @socket
         @socket.close
+        @socket = nil
       end
       @pac.shutdown if @pac
       @status = :Stop
