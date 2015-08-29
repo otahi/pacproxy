@@ -69,9 +69,9 @@ describe Pacproxy do
       c = HTTPClient.new('http://127.0.0.1:13128')
       res = c.get('http://127.0.0.1:13080/')
       expect(res.status).to eq(200)
-
       res = c.get('http://127.0.0.1:13080/noproxy/')
       expect(res.status).to eq(200)
+      c.reset_all
     end
 
     it 'transfer request to server directly via HTTPS' do
