@@ -22,6 +22,7 @@ describe Pacproxy do
 
   describe 'Pacproxy#proxy_uri' do
     before(:each) do
+      STDERR.puts(`netstat -an | grep \'.13\'`)
       $stdout, $stderr = StringIO.new, StringIO.new
       @http_server = WEBrick::HTTPServer.new(Port: 13_080)
       @http_server.define_singleton_method(:service) do |_req, res|
@@ -56,6 +57,7 @@ describe Pacproxy do
                           @pacproxy_server],
                          :Stop)
       STDERR.puts 'wait_server_status done'
+      STDERR.puts(`netstat -an | grep \'.13\'|grep tcp4`)
     end
 
     it 'transfer request to server directly' do
@@ -102,6 +104,7 @@ describe Pacproxy do
       STDERR.puts 'HTTPClient request 2 done'
       expect(res.status).to eq(200)
       STDERR.puts 'transfer request to server directly via HTTPS exiting'
+      c.reset_all
     end
 
     it 'transfer request to server directly with PUT method' do
