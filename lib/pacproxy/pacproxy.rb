@@ -27,7 +27,6 @@ module Pacproxy
 
     def start
       @socket = TCPServer.new(@host, @port)
-      @socket.setsockopt(:SOCKET, :REUSEADDR, true)
       @status = :Running
       loop do
         s = @socket.accept
@@ -37,6 +36,8 @@ module Pacproxy
       STDERR.puts e
       sleep 3
       retry
+    rescue => e
+      STDERR.puts e
     ensure
       shutdown
     end
