@@ -27,6 +27,7 @@ module Pacproxy
 
     def start
       @socket = TCPServer.new(@host, @port)
+      @socket.setsockopt(:SOCKET, :REUSEADDR, true)
       @status = :Running
       loop do
         s = @socket.accept
