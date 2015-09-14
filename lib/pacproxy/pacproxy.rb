@@ -26,6 +26,7 @@ module Pacproxy
     end
 
     def start
+      @socks = []
       @socket = TCPServer.new(@host, @port)
       @status = :Running
       loop do
@@ -48,6 +49,9 @@ module Pacproxy
         @socket.close
         @socket = nil
       end
+      @socks.each do |s|
+        s.close unless s.closed?
+      end
       @pac.shutdown if @pac
       @status = :Stop
       STDERR.puts("done: pacproxy socket.closed?:#{@socket.closed?}") if @socket
@@ -56,6 +60,7 @@ module Pacproxy
     private
 
     def handle_request(client_s)
+      @socks << client_s
       request_line = client_s.readline
       match_result = request_line.match(REQUEST_LINE_REGEXP)
       method       = match_result[:method]
