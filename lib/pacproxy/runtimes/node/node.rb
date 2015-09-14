@@ -63,7 +63,11 @@ module Pacproxy
         if OS.windows?
           stop_server(@server_pid)
         else
-          Process.kill(:INT, @server_pid)
+          begin
+            Process.kill(:INT, @server_pid)
+          rescue Errno::ESRCH
+            lwarn('No process is Running.')
+          end
         end
       end
 
@@ -150,7 +154,11 @@ module Pacproxy
       def stop_server(server_info)
         require 'win32/process'
         return unless server_info || server_info.respond_to?(:process_id)
-        Process.kill('ExitProcess', [server_info.process_id])
+        begin
+          Process.kill('ExitProcess', [server_info.process_id])
+        rescue Errno::ESRCH
+          lwarn('No process is Running.')
+        end
       end
     end
   end

@@ -1,9 +1,13 @@
+sudo: true
 language: ruby
 cache: bundler
 
+addons:
+  apt:
+    packages:
+    - node
+
 before_install:
-  - 'test Node = "$PACPROXY_RUNTIME" && sudo apt-get update || true'
-  - 'test Node = "$PACPROXY_RUNTIME" && sudo apt-get install node || true'
   - 'test Node = "$PACPROXY_RUNTIME" && (cd lib/pacproxy/runtimes/node ; npm install) || true'
 
 rvm:

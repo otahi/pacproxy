@@ -1,14 +1,23 @@
 require 'pacproxy'
-require 'webrick/httpproxy'
+require 'socket'
 require 'uri'
 
 module Pacproxy
   # Pacproxy::Pacproxy represent http/https proxy server
-  class Pacproxy < WEBrick::HTTPProxyServer # rubocop:disable ClassLength
+  class Pacproxy
     include Loggable
 
-    def initialize(config = {}, default = WEBrick::Config::HTTP)
-      super({ Port: config['port'], Logger: general_logger }, default)
+    attr_reader :status
+
+    REQUEST_LINE_REGEXP =
+      /^(?<method>\w+)\s+(?<unparsed_uri>\S+)\s+HTTP\/(?<version>\d\.\d)\s*$/
+    BUFFER_SIZE = 1024 * 16
+
+    def initialize(config = {})
+      # TODO: Logger
+      @status = :Stop
+      @host = config['host']
+      @port = config['port']
       @auth = config['auth']
       return unless config['pac_file'] && config['pac_file']['location']
 
@@ -16,140 +25,132 @@ module Pacproxy
                          config['pac_file']['update_interval'])
     end
 
+    def start
+      @socks = []
+      @socket = TCPServer.new(@host, @port)
+      @status = :Running
+      loop do
+        s = @socket.accept
+        Thread.new(s, &method(:handle_request))
+      end
+    rescue Errno::EADDRINUSE => e
+      STDERR.puts e
+      sleep 3
+      retry
+    rescue => e
+      STDERR.puts e
+    ensure
+      shutdown
+    end
+
     def shutdown
+      STDERR.puts("start: pacproxy socket.closed?:#{@socket.closed?}") if @socket
+      if @socket
+        @socket.close
+        @socket = nil
+      end
+      @socks.each do |s|
+        s.close unless s.closed?
+      end
       @pac.shutdown if @pac
-      super
-    end
-
-    def proxy_uri(req, res)
-      super(req, res)
-      return unless @pac
-
-      proxy_line = @pac.find(request_uri(req))
-      proxy = lookup_proxy_uri(proxy_line)
-      create_proxy_uri(proxy, req.header)
-    end
-
-    def create_proxy_uri(proxy, header)
-      return nil unless proxy
-      return URI.parse("http://#{proxy}") unless
-        @auth || header.key?('proxy-authorization')
-
-      if @auth
-        basic_auth = "#{@auth['user']}:#{@auth['password']}"
-      elsif header.key?('proxy-authorization')
-        auth = header['proxy-authorization'][0]
-        pattern = /basic (\S+)/i
-        basic_auth = pattern.match(auth)[1].unpack('m').first
-        header.delete('proxy-authorization')
-      end
-
-      URI.parse("http://#{basic_auth}@#{proxy}")
-    end
-
-    # This method is mainly from WEBrick::HTTPProxyServer.
-    # To allow upstream proxy authentication,
-    # it operate 407 response from an upstream proxy.
-    # see: https://github.com/ruby/ruby/blob/trunk/lib/webrick/httpproxy.rb
-    # rubocop:disable all
-    def do_CONNECT(req, res)
-      # Proxy Authentication
-      proxy_auth(req, res)
-
-      ua = Thread.current[:WEBrickSocket]  # User-Agent
-      raise WEBrick::HTTPStatus::InternalServerError,
-        "[BUG] cannot get socket" unless ua
-
-      host, port = req.unparsed_uri.split(":", 2)
-      # Proxy authentication for upstream proxy server
-      if proxy = proxy_uri(req, res)
-        proxy_request_line = "CONNECT #{host}:#{port} HTTP/1.0"
-        if proxy.userinfo
-          credentials = "Basic " + [proxy.userinfo].pack("m").delete("\n")
-        end
-        host, port = proxy.host, proxy.port
-      end
-
-      begin
-        @logger.debug("CONNECT: upstream proxy is `#{host}:#{port}'.")
-        os = TCPSocket.new(host, port)     # origin server
-
-        if proxy
-          @logger.debug("CONNECT: sending a Request-Line")
-          os << proxy_request_line << WEBrick::CRLF
-          @logger.debug("CONNECT: > #{proxy_request_line}")
-          if credentials
-            @logger.debug("CONNECT: sending a credentials")
-            os << "Proxy-Authorization: " << credentials << WEBrick::CRLF
-          end
-          os << WEBrick::CRLF
-          proxy_status_line = os.gets(WEBrick::LF)
-          @logger.debug("CONNECT: read a Status-Line form the upstream server")
-          @logger.debug("CONNECT: < #{proxy_status_line}")
-          if /^HTTP\/\d+\.\d+\s+(?<st>200|407)\s*/ =~ proxy_status_line
-            res.status = st.to_i
-            while line = os.gets(WEBrick::LF)
-              res.header['Proxy-Authenticate'] =
-                line.split(':')[1] if /Proxy-Authenticate/i =~ line
-              break if /\A(#{WEBrick::CRLF}|#{WEBrick::LF})\z/om =~ line
-            end
-          else
-            raise WEBrick::HTTPStatus::BadGateway
-          end
-        end
-        @logger.debug("CONNECT #{host}:#{port}: succeeded")
-      rescue => ex
-        @logger.debug("CONNECT #{host}:#{port}: failed `#{ex.message}'")
-        res.set_error(ex)
-        raise WEBrick::HTTPStatus::EOFError
-      ensure
-        if handler = @config[:ProxyContentHandler]
-          handler.call(req, res)
-        end
-        res.send_response(ua)
-        accesslog(req, res)
-
-        # Should clear request-line not to send the response twice.
-        # see: HTTPServer#run
-        req.parse(WEBrick::NullReader) rescue nil
-      end
-
-      begin
-        while fds = IO::select([ua, os])
-          if fds[0].member?(ua)
-            buf = ua.sysread(1024);
-            @logger.debug("CONNECT: #{buf.bytesize} byte from User-Agent")
-            os.syswrite(buf)
-          elsif fds[0].member?(os)
-            buf = os.sysread(1024);
-            @logger.debug("CONNECT: #{buf.bytesize} byte from #{host}:#{port}")
-            ua.syswrite(buf)
-          end
-        end
-      rescue
-        os.close
-        @logger.debug("CONNECT #{host}:#{port}: closed")
-      end
-
-      raise WEBrick::HTTPStatus::EOFError
-    end
-    # rubocop:enable all
-
-    def proxy_auth(req, res)
-      @config[:ProxyAuthProc].call(req, res) if @config[:ProxyAuthProc]
+      @status = :Stop
+      STDERR.puts("done: pacproxy socket.closed?:#{@socket.closed?}") if @socket
     end
 
     private
 
-    def request_uri(request)
-      if 'CONNECT' == request.request_method
-        "https://#{request.unparsed_uri}/"
+    def handle_request(client_s)
+      @socks << client_s
+      request_line = client_s.readline
+      match_result = request_line.match(REQUEST_LINE_REGEXP)
+      method       = match_result[:method]
+      unparsed_uri = match_result[:unparsed_uri]
+      version      = match_result[:version]
+
+      proxy = if method == 'CONNECT'
+                @pac.find("https://#{unparsed_uri}")
+              else
+                @pac.find(unparsed_uri)
+              end
+      # TODO: recover
+      if method == 'CONNECT' && proxy == 'DIRECT'
+        do_connect(client_s, method, unparsed_uri, version)
       else
-        request.unparsed_uri
+        unparsed_uri = "https://#{unparsed_uri}" if method == 'CONNECT'
+        do_request(client_s, method, unparsed_uri, version, proxy)
       end
     end
 
-    def lookup_proxy_uri(proxy_line)
+    def do_request(client_s, method, unparsed_uri, version, proxy)
+      if proxy =~ /^proxy/i
+        host, port = find_proxy_uri(proxy).split(':')
+        port ||= 80
+        server_s = TCPSocket.new(host, port)
+        server_s.write("#{method} #{unparsed_uri} HTTP/#{version}\r\n")
+        write_proxy_credential(server_s)
+      else
+        uri = URI.parse(unparsed_uri)
+        # TODO: recover
+        server_s = TCPSocket.new(uri.host, uri.port)
+        server_s.write("#{method} #{uri.path}?#{uri.query} HTTP/#{version}\r\n")
+      end
+
+      # TODO: write log
+      loop do
+        line = client_s.readline
+        if line =~ /^proxy/i && proxy == 'DIRECT'
+          # Strip proxy headers
+          next
+        elsif line.strip.empty?
+          server_s.write("Connection: close\r\n\r\n")
+          break
+        else
+          server_s.write(line)
+        end
+      end
+
+      transfer_data(client_s, server_s)
+    ensure
+      server_s.close unless server_s.closed?
+      client_s.close unless client_s.closed?
+    end
+
+    def do_connect(client_s, _method, unparsed_uri, _version)
+      uri = URI.parse("https://#{unparsed_uri}")
+      # TODO: recover
+      server_s = TCPSocket.new(uri.host, uri.port)
+      client_s.read_nonblock(BUFFER_SIZE)
+      client_s.write("HTTP/1.0 200 Connection Established\r\n\r\n")
+
+      # TODO: write log
+      transfer_data(client_s, server_s)
+    ensure
+      server_s.close unless server_s.closed?
+      client_s.close unless client_s.closed?
+    end
+
+    def transfer_data(client_s, server_s)
+      while (fds = IO.select([client_s, server_s]))
+        if fds[0].member?(client_s)
+          server_s.write(client_s.read_nonblock(BUFFER_SIZE))
+        elsif fds[0].member?(server_s)
+          client_s.write(server_s.read_nonblock(BUFFER_SIZE))
+        end
+      end
+    rescue => e
+      STDOUT.puts('Error' +  e)
+    ensure
+      STDOUT.puts('server_s client_s closed')
+    end
+
+    def write_proxy_credential(server_s)
+      return unless @auth
+      credentials = 'Basic ' +
+        ["#{@auth['user']}:#{@auth['password']}"].pack('m').delete("\n")
+      server_s.write('Proxy-authorization: ' + credentials + "\r\n")
+    end
+
+    def find_proxy_uri(proxy_line)
       case proxy_line
       when /^DIRECT/
         nil
@@ -158,39 +159,5 @@ module Pacproxy
         /PROXY (.*)/.match(primary_proxy)[1]
       end
     end
-
-    # This method is mainly from WEBrick::HTTPProxyServer.
-    # proxy-authenticate can be transferred from a upstream proxy server
-    # to a client
-    # see: https://github.com/ruby/ruby/blob/trunk/lib/webrick/httpproxy.rb
-    HOP_BY_HOP = %w( connection keep-alive upgrade
-                     proxy-authorization te trailers transfer-encoding )
-    SHOULD_NOT_TRANSFER = %w( set-cookie proxy-connection )
-    def choose_header(src, dst)
-      connections = split_field(src['connection'])
-      src.each do |key, value|
-        key = key.downcase
-        next if HOP_BY_HOP.member?(key)        || # RFC2616: 13.5.1
-          connections.member?(key)             || # RFC2616: 14.10
-          SHOULD_NOT_TRANSFER.member?(key)        # pragmatics
-
-        dst[key] = value
-      end
-    end
-
-    def perform_proxy_request(req, res)
-      super
-      accesslog(req, res)
-    end
-
-    # allow PUT method on proxy server
-    # method names for webrick is indicated by rubocop
-    # rubocop:disable all
-    def do_PUT(req, res)
-      perform_proxy_request(req, res) do |http, path, header|
-        http.put(path, req.body || '', header)
-      end
-    end
-    # rubocop:enable all
   end
 end
